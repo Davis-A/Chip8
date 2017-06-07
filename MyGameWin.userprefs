@@ -6,7 +6,7 @@
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.Workbench ActiveDocument="src\GameMain.cs">
     <Files>
-      <File FileName="src\GameMain.cs" Line="59" Column="11" />
+      <File FileName="src\GameMain.cs" Line="58" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.ItemProperties.MyGameWin PreferredExecutionTarget="MonoDevelop.Default" />
