@@ -47,8 +47,7 @@ namespace MyGame
 			pixelState [0, 2] = true;
 			pixelState [10, 10] = true;
 
-
-           
+			chip8 machine = new chip8 (pixelState);
             
             //Run the game loop
             while(false == SwinGame.WindowCloseRequested())

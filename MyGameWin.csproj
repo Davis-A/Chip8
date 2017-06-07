@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\GameMain.cs" />
+    <Compile Include="src\chip8.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="SwinGame">

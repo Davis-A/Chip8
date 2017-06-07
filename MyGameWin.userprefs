@@ -4,10 +4,24 @@
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MonoDevelop.Ide.Workbench ActiveDocument="src\GameMain.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="src\chip8.cs">
     <Files>
-      <File FileName="src\GameMain.cs" Line="58" Column="1" />
+      <File FileName="src\GameMain.cs" Line="30" Column="17" />
+      <File FileName="src\chip8.cs" Line="7" Column="3" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="MyGameWin" expanded="True">
+            <Node name="MyGameWin" expanded="True">
+              <Node name="src" expanded="True">
+                <Node name="chip8.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.ItemProperties.MyGameWin PreferredExecutionTarget="MonoDevelop.Default" />
 </Properties>
