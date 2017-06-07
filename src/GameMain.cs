@@ -100,6 +100,7 @@ namespace MyGame
 			pixelState [0, 0] = true;
 			pixelState [1, 1] = true;
 			pixelState [0, 2] = true;
+			pixelState [10, 10] = true;
 
 
            
