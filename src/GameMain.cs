@@ -11,50 +11,24 @@ namespace MyGame
 		//Therefore 4:1 is 128x64
 		//256x128 is 4:1 of above
 		//512x256 is 8:1
-		const int chip8_X = 64;
-		const int chip8_Y = 32;
-		const int ScreenWidth = 512;
-		const int ScreenHeight = 256;
-		const int ScreenMultiplier = 8;
+		const int CHIP8_X = 64;
+		const int CHIP8_Y = 32;
+		const int MULTIPLIER = 16;
 
-
-		public static void tempSetAllbool (bool [] pixelState)
-		{
-			for (int i = 0; i < 2048; i++) 
-			{
-				pixelState [i] = true;
-			}
-		}
-
-		public static void tempAlternatebool (bool [] pixelState) 
-		{
-			bool state = true;
-
-			for (int i = 0; i < 2048; i++)
-			{
-				if (state) 
-				{
-					pixelState [i] = true;
-					state = false;
-				}else 
-				{
-					pixelState [i] = false;
-					state = true;
-				}
-			}
-		}
 
 
 		public static void RenderPixel (bool [,] pixelState)
 		{
-			for (int x = 0; x < chip8_X; x++) 
+			for (int x = 0; x < CHIP8_X; x++) 
 			{
-				for (int y = 0; y < chip8_Y; y++) 
+				for (int y = 0; y < CHIP8_Y; y++) 
 				{
-					if (pixelState [x, y]) 
+					if (pixelState [x, y])
 					{
-					SwinGame.FillRectangle (Color.White, x * ScreenMultiplier, y * ScreenMultiplier, ScreenMultiplier, ScreenMultiplier);
+						SwinGame.FillRectangle (Color.White, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
 					}
+					//gridlines
+					SwinGame.DrawRectangle (Color.Blue, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
 
 				}
 			}
@@ -64,8 +38,8 @@ namespace MyGame
 
         public static void Main()
         {
-         	bool [,] pixelState = new bool [chip8_X, chip8_Y];
-			SwinGame.OpenGraphicsWindow ("GameMain", ScreenWidth, ScreenHeight);
+         	bool [,] pixelState = new bool [CHIP8_X, CHIP8_Y];
+			SwinGame.OpenGraphicsWindow ("GameMain", CHIP8_X * MULTIPLIER, CHIP8_Y * MULTIPLIER);
 	
 
 			pixelState [0, 0] = true;
@@ -87,18 +61,8 @@ namespace MyGame
 
 				RenderPixel (pixelState);  
 
-
-
-
-
-
-
-
-
-
-
 				//SwinGame.DrawRectangle (Color.Blue, 50,50, 100, 100);
-                SwinGame.DrawFramerate(0,0);
+               //SwinGame.DrawFramerate(0,0);
                 
                 //Draw onto the screen
                 SwinGame.RefreshScreen(60);
