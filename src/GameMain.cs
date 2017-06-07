@@ -34,12 +34,22 @@ namespace MyGame
 			}
 		}
 
+		public static void Temp () 
+		{
+			uint twobitinteger = 0x0;
+			byte byte1 = 0x09;
+			byte byte2 = 0xFF;
+			Console.WriteLine ("My values are {0} and {1}", byte1, byte2);
+			twobitinteger = byte1;
+			Console.WriteLine ("twobitInteger is {0}", twobitinteger);
+		}
+
 
 
         public static void Main()
         {
          	bool [,] pixelState = new bool [CHIP8_X, CHIP8_Y];
-			SwinGame.OpenGraphicsWindow ("GameMain", CHIP8_X * MULTIPLIER, CHIP8_Y * MULTIPLIER);
+
 	
 
 			pixelState [0, 0] = true;
@@ -48,8 +58,16 @@ namespace MyGame
 			pixelState [10, 10] = true;
 
 			chip8 machine = new chip8 (pixelState);
-            
+
+
+			Temp ();
+			Console.WriteLine ("Hello world");
+
+
+
+		    /*        
             //Run the game loop
+			SwinGame.OpenGraphicsWindow ("GameMain", CHIP8_X * MULTIPLIER, CHIP8_Y * MULTIPLIER);
             while(false == SwinGame.WindowCloseRequested())
             {
                 //Fetch the next batch of UI interaction
@@ -66,6 +84,7 @@ namespace MyGame
                 //Draw onto the screen
                 SwinGame.RefreshScreen(60);
             }
+			*/
         }
     }
 }
