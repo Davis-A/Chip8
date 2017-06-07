@@ -34,17 +34,6 @@ namespace MyGame
 			}
 		}
 
-		public static void Temp () 
-		{
-			uint twobitinteger = 0x0;
-			byte byte1 = 0x09;
-			byte byte2 = 0xFF;
-			Console.WriteLine ("My values are {0} and {1}", byte1, byte2);
-			twobitinteger = byte1;
-			Console.WriteLine ("twobitInteger is {0}", twobitinteger);
-		}
-
-
 
         public static void Main()
         {
@@ -59,13 +48,13 @@ namespace MyGame
 
 			chip8 machine = new chip8 (pixelState);
 
-
-			Temp ();
-			Console.WriteLine ("Hello world");
+			machine.GetOpcode ();
 
 
 
-		    /*        
+
+
+		           
             //Run the game loop
 			SwinGame.OpenGraphicsWindow ("GameMain", CHIP8_X * MULTIPLIER, CHIP8_Y * MULTIPLIER);
             while(false == SwinGame.WindowCloseRequested())
@@ -84,7 +73,7 @@ namespace MyGame
                 //Draw onto the screen
                 SwinGame.RefreshScreen(60);
             }
-			*/
+
         }
     }
 }

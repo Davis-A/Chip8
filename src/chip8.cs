@@ -46,13 +46,12 @@ namespace MyGame
 			//update Timers
 		}
 
-		private ushort GetOpcode () 
+		public ushort GetOpcode () 
 		{
-			ushort p1 = _memory [_pc];
-			ushort p2 = _memory [_pc + 1];
-
-			//return _memory [_pc] << 8 | _memory [_pc + 1];
-			return 0;
+			//BUG
+			//there may be a bug here.  I don't know why it can't cast directly from a byte to a ushort if i use bitwise
+			uint result = (uint)_memory [_pc] << 8 | _memory [_pc + 1];
+			return (ushort) result;
 		}
 	}
 }

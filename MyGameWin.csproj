@@ -35,6 +35,11 @@
   <PropertyGroup>
     <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyLibsToOut</PrepareForRunDependsOn>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
+    <StartAction>Project</StartAction>
+    <ExternalConsole>false</ExternalConsole>
+    <TargetRuntimeId>MS.NET</TargetRuntimeId>
+  </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\" />
     <Folder Include="Resources\" />
