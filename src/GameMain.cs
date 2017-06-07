@@ -5,6 +5,12 @@ namespace MyGame
 {
     public class GameMain
     {
+
+		 
+		//chip 8 is 64x32
+		//Therefore 4:1 is 128x64
+		//256x128 is 4:1 of above
+		//512x256 is 8:1
 		const int chip8_X = 64;
 		const int chip8_Y = 32;
 		const int ScreenWidth = 512;
@@ -54,49 +60,14 @@ namespace MyGame
 			}
 		}
 
-		//render pixel with 1d array
-		/*
-
-		public static void RenderPixel (bool [] pixilState)
-		{
-			float x = 0;
-			float y = 0;
-
-			foreach (bool b in pixilState) {
-				if (b) {
-					SwinGame.FillRectangle (Color.Black, x, y, 8, 8);
-				}
-				x = x + 8;
-				if (x >= 512) {
-					x = 0;
-					y = y + 8;
-				}
-
-			}
-		}
-		*/
 
 
         public static void Main()
         {
-            //Open the game window
-			//chip 8 is 64x32
-			//Therefore 4:1 is 128x64
-			//256x128 is 4:1 of above
-			//512x256
-            SwinGame.OpenGraphicsWindow("GameMain", 512, 256);
-			//a 2d array would make more sense
+         	bool [,] pixelState = new bool [chip8_X, chip8_Y];
+			SwinGame.OpenGraphicsWindow ("GameMain", ScreenWidth, ScreenHeight);
+	
 
-			//1d pixel array code
-			/*
-			bool [] pixelState = new bool [2048];
-			tempAlternatebool (pixelState);
-			tempSetAllbool (pixelState);
-			*/
-
-			//pixelState [0] = true;
-
-			bool [,] pixelState = new bool [chip8_X, chip8_Y];
 			pixelState [0, 0] = true;
 			pixelState [1, 1] = true;
 			pixelState [0, 2] = true;
