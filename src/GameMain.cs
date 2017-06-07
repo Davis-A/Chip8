@@ -5,12 +5,11 @@ namespace MyGame
 {
     public class GameMain
     {
-
-		/// <summary>
-		/// temporary method to fill up pixelstate array to test screen renderer.
-		/// </summary>
-		/// <param name="pixilState">Pixil state.</param>
-		///
+		const int chip8_X = 64;
+		const int chip8_Y = 32;
+		const int ScreenWidth = 512;
+		const int ScreenHeight = 256;
+		const int ScreenMultiplier = 8;
 
 
 		public static void tempSetAllbool (bool [] pixelState)
@@ -39,6 +38,25 @@ namespace MyGame
 			}
 		}
 
+
+		public static void RenderPixel (bool [,] pixelState)
+		{
+			for (int x = 0; x < chip8_X; x++) 
+			{
+				for (int y = 0; y < chip8_Y; y++) 
+				{
+					if (pixelState [x, y]) 
+					{
+					SwinGame.FillRectangle (Color.White, x * ScreenMultiplier, y * ScreenMultiplier, ScreenMultiplier, ScreenMultiplier);
+					}
+
+				}
+			}
+		}
+
+		//render pixel with 1d array
+		/*
+
 		public static void RenderPixel (bool [] pixilState)
 		{
 			float x = 0;
@@ -56,6 +74,7 @@ namespace MyGame
 
 			}
 		}
+		*/
 
 
         public static void Main()
@@ -67,12 +86,22 @@ namespace MyGame
 			//512x256
             SwinGame.OpenGraphicsWindow("GameMain", 512, 256);
 			//a 2d array would make more sense
+
+			//1d pixel array code
+			/*
 			bool [] pixelState = new bool [2048];
 			tempAlternatebool (pixelState);
 			tempSetAllbool (pixelState);
-
+			*/
 
 			//pixelState [0] = true;
+
+			bool [,] pixelState = new bool [chip8_X, chip8_Y];
+			pixelState [0, 0] = true;
+			pixelState [1, 1] = true;
+			pixelState [0, 2] = true;
+
+
            
             
             //Run the game loop
@@ -82,9 +111,9 @@ namespace MyGame
                 SwinGame.ProcessEvents();
                 
                 //Clear the screen and draw the framerate
-                SwinGame.ClearScreen(Color.White);
+				SwinGame.ClearScreen(Color.Black);
 
-				RenderPixel (pixelState);
+				RenderPixel (pixelState);  
 
 
 
