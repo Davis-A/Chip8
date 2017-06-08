@@ -84,7 +84,7 @@ namespace MyGame
 			//get opcode
 			_opcode = GetOpcode ();
 			//temp opcode manipulation
-			//_opcode = 0x00E0;
+			_opcode = 0xA111;
 
 			//decode and execute OpCode
 			RunOpCode ();
@@ -105,9 +105,13 @@ namespace MyGame
 				case 0x00E0:
 					//clear the screen
 					SetAllPixels (false);
+					_pc += 2;
 					break;
 				case 0x00EE:
-					//TODO return from subroutine
+					//return from subroutine
+					_sp--;
+					_pc = _stack [_sp];
+					_pc += 2;
 					break;
 				default:
 					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
@@ -116,7 +120,7 @@ namespace MyGame
 				break;
 
 			case 0xA000:
-				_I =_opcode & 0xFFF;
+				_I =_opcode & 0x0FFF;
 				Console.WriteLine ("The value of the index register is: {0}", _I.ToString ("X4"));
 				_pc += 2;
 				break;
