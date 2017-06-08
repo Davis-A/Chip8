@@ -312,6 +312,24 @@ namespace MyGame
 			_registers [(_opcode & 0x0F00) >> 8] = _registers [(_opcode & 0x00F0) >> 4];
 		}
 
+		/// <summary>
+		/// Register X is set to register[X] Bitwise OR regester[Y]
+		/// register[X] = register[X] | register[Y]
+		/// </summary>
+		private void Op0x8XY1 () 
+		{
+			_registers [(_opcode & 0x0F00) >> 8] = (byte)((_registers [(_opcode & 0x0F00) >> 8]) | (_registers [(_opcode & 0x00F0) >> 4]));
+		}
+
+		/// <summary>
+		/// Register X is set to register[X] Bitwise AND regester[Y]
+		/// register[X] = register[X] & register[Y]
+		/// </summary>
+		private void Op0x8XY2 ()
+		{
+			_registers [(_opcode & 0x0F00) >> 8] = (byte)((_registers [(_opcode & 0x0F00) >> 8]) & (_registers [(_opcode & 0x00F0) >> 4]));
+		}
+
 
 	
 
@@ -328,7 +346,17 @@ namespace MyGame
 				case 0x5000:	Op0x5XY0 ();	break;
 				case 0x6000:	Op0x6XNN ();	break;
 				case 0x7000: 	Op0x7XNN (); 	break;
-				case 0x8000: 	Op0x8XY0 (); 	break; //TODO there are numerous 0x8000 instructions
+				case 0x8000: 	switch (_opcode & 0x000F) 
+								{
+									case 0x0000: Op0x8XY0 (); 	break;
+									case 0x0001: Op0x8XY1 ();	break;
+									case 0x0002: Op0x8XY2 (); 	break;
+								}break;
+
+
+
+
+
 				case 0xA000:	Op0xANNN ();	break;
 
 
