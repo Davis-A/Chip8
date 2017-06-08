@@ -249,7 +249,7 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] == NN
 		/// </summary>
-		public void op0x3XNN () 
+		public void Op0x3XNN () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] == (_opcode & 0x00FF)) 
 			{
@@ -262,7 +262,7 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] != NN
 		/// </summary>
-		public void op0x4XNN () 
+		public void Op0x4XNN () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] != (_opcode & 0x00FF)) 
 			{
@@ -276,7 +276,7 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[x] == register[Y]
 		/// </summary>
-		public void op0x5XY0 () 
+		public void Op0x5XY0 () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] == (_registers [(_opcode & 0x00F0) >> 4])) 
 			{
@@ -299,9 +299,9 @@ namespace MyGame
 			{
 				case 0x1000:	Op0x1NNN ();		break;
 				case 0x2000:	Op0x2NNN ();		break;
-				case 0x3000:	op0x3XNN ();		break;
-				case 0x4000:	op0x4XNN ();		break;
-				case 0x5000: 	op0x5XY0 (); 		break;
+				case 0x3000:	Op0x3XNN ();		break;
+				case 0x4000:	Op0x4XNN ();		break;
+				case 0x5000: 	Op0x5XY0 (); 		break;
 				case 0xA000:	Op0xANNN ();		break;
 
 
