@@ -7,7 +7,7 @@ namespace MyGame
 
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
-		public const ushort MEMORY_START = 0x200;
+		public const ushort INITIAL_PROGRAM_ADDRESS = 0x200;
 
 		/*
 		 * All ushorts should be ushorts as they only need 16 bits
@@ -56,7 +56,7 @@ namespace MyGame
 		{
 			//Reset all values
 			//progam counter starts at 0x200 because a game should be in memory
-			_pc = MEMORY_START;
+			_pc = INITIAL_PROGRAM_ADDRESS;
 			_opcode = 0;
 			_memory = new byte [4096];
 			_registers = new byte [16];
@@ -110,7 +110,7 @@ namespace MyGame
 			byte [] gamedata = File.ReadAllBytes (path);
 
 			for (int i = 0; i < gamedata.Length; i++) {
-				_memory [MEMORY_START + i] = gamedata [i];
+				_memory [INITIAL_PROGRAM_ADDRESS + i] = gamedata [i];
 			}
 
 
@@ -408,31 +408,39 @@ namespace MyGame
 
 		/// <summary>
 		/// Register[X] is set to Register[Y]
-		/// Register[F] (final register) is set to 1 if there is a carry 0 otherwise
+		/// Register[0xF] (final register) is set to 1 if there is a carry 0 otherwise
 		///
 		/// </summary>
 		private void Op0x8XY4 ()
 		{
-			//todo deal with with values when overflowing
 			if ((_registers [OpcodeX] += _registers [OpcodeY]) > 255)
 			{
-				_registers [OpcodeX] += _registers [OpcodeY];
 				_registers [0xF] = 1;
-
-
 			} else
 			{
-				_registers [OpcodeX] += _registers [OpcodeY];
 				_registers [0xF] = 0;
 			}
+			_registers [OpcodeX] += _registers [OpcodeY];
 			_pc += 2;
 		}
 
+		/// <summary>
+		/// Register[X] -= Register[Y]
+		/// Register[0xF] (final register) is set to 0 when there is a borrow, 1 otherwise
+		/// </summary>
+		private void Op0x8XY5 () 
+		{
+			if (_registers [OpcodeX] < _registers [OpcodeY]) 
+			{
+				_registers [0xF] = 0;
+			} else 
+			{
+				_registers [0xF] = 1;
+			}
 
-
-
-
-
+			_registers [OpcodeX] -= _registers [OpcodeY];
+			_pc += 2;
+		}
 
 
 
@@ -455,40 +463,21 @@ namespace MyGame
 									case 0x0001: Op0x8XY1 ();	break;
 									case 0x0002: Op0x8XY2 (); 	break;
 									case 0x0003: Op0x8XY3 (); 	break;
-									//case 0x0004: Op0x8XY4 (); 	break;
+									case 0x0004: Op0x8XY4 (); 	break;
+									case 0x0005: Op0x8XY5 ();	break;
+
+									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
+								}break;
+				case 0xA000:	Op0xANNN ();	break;
+				case 0x0000:	switch (_opcode & 0x00FF)
+								{
+									case 0x00E0: 	Op0x00E0 ();	break;
+									case 0x00EE:	Op0x00EE ();	break;
+									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 								}break;
 
-
-
-
-
-				case 0xA000:	Op0xANNN ();	break;
-
-
-
-
-
-
-
-
-
-				//non standard opcodes that relies on more than first digit to determine action
-				case 0x0000:
-				switch (_opcode & 0x00FF)
-				{
-					case 0x00E0: 	Op0x00E0 ();	break;
-					case 0x00EE:	Op0x00EE ();	break;
-
-				default:
-					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
-					break;
-				}
-				break;
-
 				//default action if opcode doesn't exist
-			default:
-				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
-				break;
+				default:		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 			}
 		}
 		/*
