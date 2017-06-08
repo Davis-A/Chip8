@@ -202,7 +202,7 @@ namespace MyGame
 		/// <summary>
 		/// 0x00E0 clears the screen
 		/// </summary>
-		public void Op0x00E0 () 
+		private void Op0x00E0 () 
 		{
 			SetAllPixels (false);
 			_pc += 2;
@@ -212,7 +212,7 @@ namespace MyGame
 		/// <summary>
 		/// returns from subroutine
 		/// </summary>
-		public void Op0x00EE () 
+		private void Op0x00EE () 
 		{
 			_sp--;
 			_pc = _stack [_sp];
@@ -222,7 +222,7 @@ namespace MyGame
 		/// <summary>
 		/// Sets _I to NNN
 		/// </summary>
-		public void Op0xANNN () 
+		private void Op0xANNN () 
 		{
 			_I = _opcode & 0x0FFF;
 			_pc += 2;
@@ -231,7 +231,7 @@ namespace MyGame
 		/// <summary>
 		/// Jups to address NNN
 		/// </summary>
-		public void Op0x1NNN () 
+		private void Op0x1NNN () 
 		{
 			_pc = _opcode & 0x0FFF;
 		}
@@ -239,7 +239,7 @@ namespace MyGame
 		/// <summary>
 		/// Calls the subroutine at NNN
 		/// </summary>
-		public void Op0x2NNN () 
+		private void Op0x2NNN () 
 		{
 			_stack [_sp] = _pc;
 			_sp++;
@@ -249,7 +249,7 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] == NN
 		/// </summary>
-		public void Op0x3XNN () 
+		private void Op0x3XNN () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] == (_opcode & 0x00FF)) 
 			{
@@ -262,7 +262,7 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] != NN
 		/// </summary>
-		public void Op0x4XNN () 
+		private void Op0x4XNN () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] != (_opcode & 0x00FF)) 
 			{
@@ -274,9 +274,9 @@ namespace MyGame
 		}
 
 		/// <summary>
-		/// Skip next instruction if register[x] == register[Y]
+		/// Skip next instruction if register[X] == register[Y]
 		/// </summary>
-		public void Op0x5XY0 () 
+		private void Op0x5XY0 () 
 		{
 			if (_registers [(_opcode & 0x0F00) >> 8] == (_registers [(_opcode & 0x00F0) >> 4])) 
 			{
@@ -288,6 +288,30 @@ namespace MyGame
 			
 		}
 
+		/// <summary>
+		/// sets register[X] to NN
+		/// </summary>
+		private void Op0x6XNN () 
+		{
+			_registers [(_opcode & 0x0F00) >> 8] = (byte)(_opcode & 0x00FF);
+		}
+
+		/// <summary>
+		/// Adds NN to register[X]
+		/// </summary>
+		private void Op0x7XNN () 
+		{
+			_registers [(_opcode & 0x0F00) >> 8] += (byte)(_opcode & 0x00FF);
+		}
+
+		/// <summary>
+		/// set register[X] = register[Y]
+		/// </summary>
+		private void Op0x8XY0 () 
+		{
+			_registers [(_opcode & 0x0F00) >> 8] = _registers [(_opcode & 0x00F0) >> 4];
+		}
+
 
 	
 
@@ -297,12 +321,16 @@ namespace MyGame
 		{
 			switch (_opcode & 0xF000) 
 			{
-				case 0x1000:	Op0x1NNN ();		break;
-				case 0x2000:	Op0x2NNN ();		break;
-				case 0x3000:	Op0x3XNN ();		break;
-				case 0x4000:	Op0x4XNN ();		break;
-				case 0x5000: 	Op0x5XY0 (); 		break;
-				case 0xA000:	Op0xANNN ();		break;
+				case 0x1000:	Op0x1NNN ();	break;
+				case 0x2000:	Op0x2NNN ();	break;
+				case 0x3000:	Op0x3XNN ();	break;
+				case 0x4000:	Op0x4XNN ();	break;
+				case 0x5000:	Op0x5XY0 ();	break;
+				case 0x6000:	Op0x6XNN ();	break;
+				case 0x7000: 	Op0x7XNN (); 	break;
+				case 0x8000: 	Op0x8XY0 (); 	break; //TODO there are numerous 0x8000 instructions
+				case 0xA000:	Op0xANNN ();	break;
+
 
 
 			
@@ -315,8 +343,8 @@ namespace MyGame
 				case 0x0000:
 				switch (_opcode & 0x00FF) 
 				{
-					case 0x00E0: 		Op0x00E0 ();		break;				
-					case 0x00EE:		Op0x00EE ();		break;
+					case 0x00E0: 	Op0x00E0 ();	break;				
+					case 0x00EE:	Op0x00EE ();	break;
 								
 				default:
 					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));

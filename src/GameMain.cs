@@ -10,6 +10,8 @@ namespace MyGame
 		//multiplier for chip8 video.  This creates a 16:1 pixel output
 		const int MULTIPLIER = 16;
 
+
+
 		public static void RenderPixel (bool [,] pixelState)
 		{
 			for (int x = 0; x < chip8.CHIP8_X; x++) 
@@ -34,6 +36,8 @@ namespace MyGame
 			chip8 machine = new chip8 ();
 			//machine.SetAllPixels (true);
 			machine.Cycle ();
+
+
 
 			//to test pixel on/off state
 			/*
