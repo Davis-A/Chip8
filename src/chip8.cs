@@ -12,6 +12,7 @@ namespace MyGame
 		 * All uints should be ushorts as they only need 16 bits
 		 * C# is deciding i cant case bytes into ushorts but i can into uints
 		 * so for now i'm using uints
+		 * could create issues with overflows
 		 */
 
 		//current opcode
@@ -198,7 +199,7 @@ namespace MyGame
 		/// (Opcode AND 0x0F00) >> 8
 		/// </summary>
 		/// <value>The x.</value>
-		public uint X
+		public uint OpcodeX
 		{
 			get
 			{
@@ -211,7 +212,7 @@ namespace MyGame
 		/// (Opcode AND 0x00F0) >> 4
 		/// </summary>
 		/// <value>The y.</value>
-		public uint Y
+		public uint OpcodeY
 		{
 			get
 			{
@@ -223,7 +224,7 @@ namespace MyGame
 		/// (OPCODE AND 0x00FF)
 		/// </summary>
 		/// <value>The nn.</value>
-		public uint NN
+		public uint OpcodeNN
 		{
 			get
 			{
@@ -236,7 +237,7 @@ namespace MyGame
 		/// (OPCODE AND 0x0FFF)
 		/// </summary>
 		/// <value>The nnn.</value>
-		public uint NNN {
+		public uint OpcodeNNN {
 			get 
 			{
 				return (_opcode & 0x0FFF);
@@ -281,7 +282,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0xANNN ()
 		{
-			_I = NNN;
+			_I = OpcodeNNN;
 			_pc += 2;
 		}
 
@@ -290,7 +291,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x1NNN ()
 		{
-			_pc = NNN;
+			_pc = OpcodeNNN;
 		}
 
 		/// <summary>
@@ -300,7 +301,7 @@ namespace MyGame
 		{
 			_stack [_sp] = _pc;
 			_sp++;
-			_pc = NNN;
+			_pc = OpcodeNNN;
 		}
 
 		/// <summary>
@@ -308,7 +309,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x3XNN ()
 		{
-			if (_registers [X] == NN)
+			if (_registers [OpcodeX] == OpcodeNN)
 			{
 				_pc += 4;
 			} else
@@ -321,7 +322,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x4XNN ()
 		{
-			if (_registers [X] != NN)
+			if (_registers [OpcodeX] != OpcodeNN)
 			{
 				_pc += 4;
 			} else
@@ -335,7 +336,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x5XY0 ()
 		{
-			if (_registers [X] == (_registers [Y]))
+			if (_registers [OpcodeX] == (_registers [OpcodeY]))
 			{
 				_pc += 4;
 			} else
@@ -350,7 +351,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x6XNN ()
 		{
-			_registers [X] = (byte)NN;
+			_registers [OpcodeX] = (byte)OpcodeNN;
 			_pc += 2;
 		}
 
@@ -359,7 +360,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x7XNN ()
 		{
-			_registers [X] += (byte)NN;
+			_registers [OpcodeX] += (byte)OpcodeNN;
 			_pc += 2;
 		}
 
@@ -368,7 +369,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY0 ()
 		{
-			_registers [X] = _registers [Y];
+			_registers [OpcodeX] = _registers [OpcodeY];
 			_pc += 2;
 		}
 
@@ -378,7 +379,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY1 ()
 		{
-			_registers [X] = (byte)((_registers [X]) | (_registers [Y]));
+			_registers [OpcodeX] = (byte)((_registers [OpcodeX]) | (_registers [OpcodeY]));
 			_pc += 2;
 		}
 
@@ -388,7 +389,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY2 ()
 		{
-			_registers [X] = (byte)((_registers [X]) & (_registers [Y]));
+			_registers [OpcodeX] = (byte)((_registers [OpcodeX]) & (_registers [OpcodeY]));
 			_pc += 2;
 		}
 
@@ -398,10 +399,12 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY3 ()
 		{
-			_registers [X] = (byte)((_registers [X]) ^ (_registers [Y]));
+			_registers [OpcodeX] = (byte)((_registers [OpcodeX]) ^ (_registers [OpcodeY]));
 			_pc += 2;
 		}
 
+
+		/*
 		/// <summary>
 		/// Register[X] is set to Register[Y]
 		/// Register[F] (final register) is set to 1 if there is a carry 0 otherwise
@@ -409,10 +412,21 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY4 ()
 		{
-			_registers [X] += _registers [Y];
-			//TODO find out what a carry is!?
+			//todo deal with with values when overflowing
+			if ((_registers [OpcodeX] += _registers [OpcodeY]) > 255) 
+			{
+				_registers [0xF] = 0;
+				uint temp = (uint)(_registers [OpcodeX]) + (_registers [OpcodeY]);
+				ushort temp2 = (ushort)temp;
+
+			} else 
+			{
+				_registers [0xF] = 0;
+				_registers [OpcodeX] += _registers [OpcodeY];
+			}
 			_pc += 2;
 		}
+		*/
 
 
 
@@ -440,7 +454,7 @@ namespace MyGame
 									case 0x0001: Op0x8XY1 ();	break;
 									case 0x0002: Op0x8XY2 (); 	break;
 									case 0x0003: Op0x8XY3 (); 	break;
-									case 0x0004: Op0x8XY4 (); 	break;
+									//case 0x0004: Op0x8XY4 (); 	break;
 								}break;
 
 
