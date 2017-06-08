@@ -7,28 +7,29 @@ namespace MyGame
 
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
+		public const ushort MEMORY_START = 0x200;
 
 		/*
-		 * All uints should be ushorts as they only need 16 bits
-		 * C# is deciding i cant case bytes into ushorts but i can into uints
-		 * so for now i'm using uints
+		 * All ushorts should be ushorts as they only need 16 bits
+		 * C# is deciding i cant case bytes into ushorts but i can into ushorts
+		 * so for now i'm using ushorts
 		 * could create issues with overflows
 		 */
 
 		//current opcode
-		private uint _opcode;
+		private ushort _opcode;
 		//chip8 memory
 		private byte [] _memory;
 		//general purpose registers
 		private byte [] _registers;
 		//Index register
-		private uint _I;
+		private ushort _I;
 		//program counter
-		private uint _pc;
+		private ushort _pc;
 		bool [,] _pixelState;
 
 		//There are 16 levels of stack
-		private uint [] _stack;
+		private ushort [] _stack;
 		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).
 		private byte _sp;
 
@@ -55,13 +56,13 @@ namespace MyGame
 		{
 			//Reset all values
 			//progam counter starts at 0x200 because a game should be in memory
-			_pc = 0x200;
+			_pc = MEMORY_START;
 			_opcode = 0;
 			_memory = new byte [4096];
 			_registers = new byte [16];
 			_I = 0;
 			_pixelState = new bool [chip8.CHIP8_X, chip8.CHIP8_Y];
-			_stack = new uint [16];
+			_stack = new ushort [16];
 			_sp = 0;
 			_keypad = new bool [16];
 			LoadFontSet ();
@@ -109,7 +110,7 @@ namespace MyGame
 			byte [] gamedata = File.ReadAllBytes (path);
 
 			for (int i = 0; i < gamedata.Length; i++) {
-				_memory [0x200 + i] = gamedata [i];
+				_memory [MEMORY_START + i] = gamedata [i];
 			}
 
 
@@ -121,7 +122,7 @@ namespace MyGame
 			LoadGame ("Pong");
 		}
 
-		public uint GetOpcode ()
+		public ushort GetOpcode ()
 		{
 
 			 /*
@@ -129,12 +130,12 @@ namespace MyGame
 			 * The first half of the opcode is stored at memory[program counter]
 			 * the seond at memory[program counter +1]
 			 * Lets say memory[pc] == 0xFF (255) and memory[pc+1] == 0xAA (170)
-			 * then the opcode would be 0xFFAA (65,450)
+			 * then the opcode would be 0xFFAA (decimal: 65450)
 			 * take the first byte, shift it 8 bits then or it with the second
 			 */
 
 
-			return (uint)_memory [_pc] << 8 | _memory [_pc + 1];
+			return (ushort)(_memory [_pc] << 8 | _memory [_pc + 1]);
 		}
 
 
@@ -188,7 +189,7 @@ namespace MyGame
 
 
 		//temp method
-		public uint Opcode
+		public ushort Opcode
 		{
 			get { return _opcode; }
 			set { _opcode = value;}
@@ -199,11 +200,11 @@ namespace MyGame
 		/// (Opcode AND 0x0F00) >> 8
 		/// </summary>
 		/// <value>The x.</value>
-		public uint OpcodeX
+		public ushort OpcodeX
 		{
 			get
 			{
-				return (_opcode & 0x0F00) >> 8;
+				return (ushort)((_opcode & 0x0F00) >> 8);
 			}
 		}
 
@@ -212,11 +213,11 @@ namespace MyGame
 		/// (Opcode AND 0x00F0) >> 4
 		/// </summary>
 		/// <value>The y.</value>
-		public uint OpcodeY
+		public ushort OpcodeY
 		{
 			get
 			{
-				return (_opcode & 0x00F0) >> 4;
+				return (ushort)((_opcode & 0x00F0) >> 4);
 			}
 		}
 		/// <summary>
@@ -224,11 +225,11 @@ namespace MyGame
 		/// (OPCODE AND 0x00FF)
 		/// </summary>
 		/// <value>The nn.</value>
-		public uint OpcodeNN
+		public ushort OpcodeNN
 		{
 			get
 			{
-				return (_opcode & 0x00FF);
+				return (ushort)(_opcode & 0x00FF);
 			}
 		}
 
@@ -237,10 +238,10 @@ namespace MyGame
 		/// (OPCODE AND 0x0FFF)
 		/// </summary>
 		/// <value>The nnn.</value>
-		public uint OpcodeNNN {
-			get 
+		public ushort OpcodeNNN {
+			get
 			{
-				return (_opcode & 0x0FFF);
+				return (ushort)(_opcode & 0x0FFF);
 			}
 		}
 
@@ -404,7 +405,7 @@ namespace MyGame
 		}
 
 
-		/*
+
 		/// <summary>
 		/// Register[X] is set to Register[Y]
 		/// Register[F] (final register) is set to 1 if there is a carry 0 otherwise
@@ -413,20 +414,20 @@ namespace MyGame
 		private void Op0x8XY4 ()
 		{
 			//todo deal with with values when overflowing
-			if ((_registers [OpcodeX] += _registers [OpcodeY]) > 255) 
+			if ((_registers [OpcodeX] += _registers [OpcodeY]) > 255)
 			{
-				_registers [0xF] = 0;
-				uint temp = (uint)(_registers [OpcodeX]) + (_registers [OpcodeY]);
-				ushort temp2 = (ushort)temp;
-
-			} else 
-			{
-				_registers [0xF] = 0;
 				_registers [OpcodeX] += _registers [OpcodeY];
+				_registers [0xF] = 1;
+
+
+			} else
+			{
+				_registers [OpcodeX] += _registers [OpcodeY];
+				_registers [0xF] = 0;
 			}
 			_pc += 2;
 		}
-		*/
+
 
 
 
