@@ -4,10 +4,10 @@ namespace MyGame
 {
 	public class chip8
 	{
-		
+
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
-	
+
 		/*
 		 * All uints should be ushorts as they only need 16 bits
 		 * C# is deciding i cant case bytes into ushorts but i can into uints
@@ -28,7 +28,7 @@ namespace MyGame
 
 		//There are 16 levels of stack
 		private uint [] _stack;
-		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).  
+		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).
 		private byte _sp;
 
 		//Chip8 has hex keypad 0x0 to 0xF
@@ -39,8 +39,8 @@ namespace MyGame
 		private byte _delayTimer;
 		private byte _soundTimer;
 		*/
-	
-	
+
+
 		public chip8 ()
 		{
 			Init ();
@@ -50,7 +50,7 @@ namespace MyGame
 		/// <summary>
 		/// Init resets the memory of everything.
 		/// </summary>
-		public void Init () 
+		public void Init ()
 		{
 			//Reset all values
 			//progam counter starts at 0x200 because a game should be in memory
@@ -76,10 +76,10 @@ namespace MyGame
 
 
 		/// <summary>
-		/// Main Cycle.  For optimum emulation it should be run in a loop 60x 
+		/// Main Cycle.  For optimum emulation it should be run in a loop 60x
 		/// per second
 		/// </summary>
-		public void Cycle () 
+		public void Cycle ()
 		{
 			//get opcode
 			_opcode = GetOpcode ();
@@ -120,10 +120,10 @@ namespace MyGame
 			LoadGame ("Pong");
 		}
 
-		public uint GetOpcode () 
+		public uint GetOpcode ()
 		{
 
-			 /* 
+			 /*
 			 * Each chunk of memory is 8bits (1byte) and an opcode is 16 bits (2bytes)
 			 * The first half of the opcode is stored at memory[program counter]
 			 * the seond at memory[program counter +1]
@@ -137,8 +137,8 @@ namespace MyGame
 		}
 
 
-		private void LoadFontSet () 
-		{ 
+		private void LoadFontSet ()
+		{
 			// this is the fontset as per a bunch of guides.  Unsure how it works
 			byte [] fontset =
 				{
@@ -160,25 +160,25 @@ namespace MyGame
 			        0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 				};
 			//fontset is stored in the first 80 bytes of memory
-			for (int i = 0; i < 80; i++) 
+			for (int i = 0; i < 80; i++)
 			{
 				_memory [i] = fontset [i];
 			}
 		}
 
 
-	
+
 
 
 		/// <summary>
 		/// Iterate through all pixels and set them
 		/// equal to  the parameter
 		/// </summary>
-		public void SetAllPixels (bool setvalue) 
+		public void SetAllPixels (bool setvalue)
 		{
-			for (int x = 0; x < chip8.CHIP8_X; x++) 
+			for (int x = 0; x < chip8.CHIP8_X; x++)
 			{
-				for (int y = 0; y < chip8.CHIP8_Y; y++) 
+				for (int y = 0; y < chip8.CHIP8_Y; y++)
 				{
 					_pixelState [x, y] = setvalue;
 				}
@@ -186,9 +186,66 @@ namespace MyGame
 		}
 
 
+		//temp method
+		public uint Opcode
+		{
+			get { return _opcode; }
+			set { _opcode = value;}
+		}
+
+		/// <summary>
+		/// Returns the second nibble from Opcode
+		/// (Opcode AND 0x0F00) >> 8
+		/// </summary>
+		/// <value>The x.</value>
+		public uint X
+		{
+			get
+			{
+				return (_opcode & 0x0F00) >> 8;
+			}
+		}
+
+		/// <summary>
+		/// Returns the third nibble from Opcode
+		/// (Opcode AND 0x00F0) >> 4
+		/// </summary>
+		/// <value>The y.</value>
+		public uint Y
+		{
+			get
+			{
+				return (_opcode & 0x00F0) >> 4;
+			}
+		}
+		/// <summary>
+		/// Returns the third and 4th nibble from Opcode
+		/// (OPCODE AND 0x00FF)
+		/// </summary>
+		/// <value>The nn.</value>
+		public uint NN
+		{
+			get
+			{
+				return (_opcode & 0x00FF);
+			}
+		}
+
+		/// <summary>
+		/// Returns all but the first nibble from Opcode
+		/// (OPCODE AND 0x0FFF)
+		/// </summary>
+		/// <value>The nnn.</value>
+		public uint NNN {
+			get 
+			{
+				return (_opcode & 0x0FFF);
+			}
+		}
 
 
-		public bool [,] PixelState 
+
+		public bool [,] PixelState
 		{
 			get { return _pixelState; }
 		}
@@ -202,7 +259,7 @@ namespace MyGame
 		/// <summary>
 		/// 0x00E0 clears the screen
 		/// </summary>
-		private void Op0x00E0 () 
+		private void Op0x00E0 ()
 		{
 			SetAllPixels (false);
 			_pc += 2;
@@ -212,7 +269,7 @@ namespace MyGame
 		/// <summary>
 		/// returns from subroutine
 		/// </summary>
-		private void Op0x00EE () 
+		private void Op0x00EE ()
 		{
 			_sp--;
 			_pc = _stack [_sp];
@@ -222,39 +279,39 @@ namespace MyGame
 		/// <summary>
 		/// Sets _I to NNN
 		/// </summary>
-		private void Op0xANNN () 
+		private void Op0xANNN ()
 		{
-			_I = _opcode & 0x0FFF;
+			_I = NNN;
 			_pc += 2;
 		}
 
 		/// <summary>
 		/// Jups to address NNN
 		/// </summary>
-		private void Op0x1NNN () 
+		private void Op0x1NNN ()
 		{
-			_pc = _opcode & 0x0FFF;
+			_pc = NNN;
 		}
 
 		/// <summary>
 		/// Calls the subroutine at NNN
 		/// </summary>
-		private void Op0x2NNN () 
+		private void Op0x2NNN ()
 		{
 			_stack [_sp] = _pc;
 			_sp++;
-			_pc = _opcode & 0x0FFF;
+			_pc = NNN;
 		}
 
 		/// <summary>
 		/// Skip next instruction if register[X] == NN
 		/// </summary>
-		private void Op0x3XNN () 
+		private void Op0x3XNN ()
 		{
-			if (_registers [(_opcode & 0x0F00) >> 8] == (_opcode & 0x00FF)) 
+			if (_registers [X] == NN)
 			{
 				_pc += 4;
-			} else 
+			} else
 			{
 				_pc += 2;
 			}
@@ -262,12 +319,12 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] != NN
 		/// </summary>
-		private void Op0x4XNN () 
+		private void Op0x4XNN ()
 		{
-			if (_registers [(_opcode & 0x0F00) >> 8] != (_opcode & 0x00FF)) 
+			if (_registers [X] != NN)
 			{
 				_pc += 4;
-			} else 
+			} else
 			{
 				_pc += 2;
 			}
@@ -276,49 +333,49 @@ namespace MyGame
 		/// <summary>
 		/// Skip next instruction if register[X] == register[Y]
 		/// </summary>
-		private void Op0x5XY0 () 
+		private void Op0x5XY0 ()
 		{
-			if (_registers [(_opcode & 0x0F00) >> 8] == (_registers [(_opcode & 0x00F0) >> 4])) 
+			if (_registers [X] == (_registers [Y]))
 			{
 				_pc += 4;
-			} else 
+			} else
 			{
 				_pc += 2;
 			}
-			
+
 		}
 
 		/// <summary>
 		/// sets register[X] to NN
 		/// </summary>
-		private void Op0x6XNN () 
+		private void Op0x6XNN ()
 		{
-			_registers [(_opcode & 0x0F00) >> 8] = (byte)(_opcode & 0x00FF);
+			_registers [X] = (byte)NN;
 		}
 
 		/// <summary>
 		/// Adds NN to register[X]
 		/// </summary>
-		private void Op0x7XNN () 
+		private void Op0x7XNN ()
 		{
-			_registers [(_opcode & 0x0F00) >> 8] += (byte)(_opcode & 0x00FF);
+			_registers [X] += (byte)NN;
 		}
 
 		/// <summary>
 		/// set register[X] = register[Y]
 		/// </summary>
-		private void Op0x8XY0 () 
+		private void Op0x8XY0 ()
 		{
-			_registers [(_opcode & 0x0F00) >> 8] = _registers [(_opcode & 0x00F0) >> 4];
+			_registers [X] = _registers [Y];
 		}
 
 		/// <summary>
 		/// Register X is set to register[X] Bitwise OR regester[Y]
 		/// register[X] = register[X] | register[Y]
 		/// </summary>
-		private void Op0x8XY1 () 
+		private void Op0x8XY1 ()
 		{
-			_registers [(_opcode & 0x0F00) >> 8] = (byte)((_registers [(_opcode & 0x0F00) >> 8]) | (_registers [(_opcode & 0x00F0) >> 4]));
+			_registers [X] = (byte)((_registers [X]) | (_registers [Y]));
 		}
 
 		/// <summary>
@@ -327,17 +384,41 @@ namespace MyGame
 		/// </summary>
 		private void Op0x8XY2 ()
 		{
-			_registers [(_opcode & 0x0F00) >> 8] = (byte)((_registers [(_opcode & 0x0F00) >> 8]) & (_registers [(_opcode & 0x00F0) >> 4]));
+			_registers [X] = (byte)((_registers [X]) & (_registers [Y]));
+		}
+
+		/// <summary>
+		/// Register[X] is set to register[X] Bitwise XOR register[Y]
+		/// register[X] = register[X] ^ register[Y]
+		/// </summary>
+		private void Op0x8XY3 ()
+		{
+			_registers [X] = (byte)((_registers [X]) ^ (_registers [Y]));
+		}
+
+		/// <summary>
+		/// Register[X] is set to Register[Y]
+		/// Register[F] (final register) is set to 1 if there is a carry 0 otherwise
+		///
+		/// </summary>
+		private void Op0x8XY4 ()
+		{
+			_registers [X] += _registers [Y];
+			//TODO find out what a carry is!?
 		}
 
 
-	
+
+
+
+
+
 
 
 		//Run opcode will be moved higher up later
 		public void RunOpCode ()
 		{
-			switch (_opcode & 0xF000) 
+			switch (_opcode & 0xF000)
 			{
 				case 0x1000:	Op0x1NNN ();	break;
 				case 0x2000:	Op0x2NNN ();	break;
@@ -346,11 +427,13 @@ namespace MyGame
 				case 0x5000:	Op0x5XY0 ();	break;
 				case 0x6000:	Op0x6XNN ();	break;
 				case 0x7000: 	Op0x7XNN (); 	break;
-				case 0x8000: 	switch (_opcode & 0x000F) 
+				case 0x8000: 	switch (_opcode & 0x000F)
 								{
 									case 0x0000: Op0x8XY0 (); 	break;
 									case 0x0001: Op0x8XY1 ();	break;
 									case 0x0002: Op0x8XY2 (); 	break;
+									case 0x0003: Op0x8XY3 (); 	break;
+									case 0x0004: Op0x8XY4 (); 	break;
 								}break;
 
 
@@ -361,7 +444,7 @@ namespace MyGame
 
 
 
-			
+
 
 
 
@@ -369,11 +452,11 @@ namespace MyGame
 
 				//non standard opcodes that relies on more than first digit to determine action
 				case 0x0000:
-				switch (_opcode & 0x00FF) 
+				switch (_opcode & 0x00FF)
 				{
-					case 0x00E0: 	Op0x00E0 ();	break;				
+					case 0x00E0: 	Op0x00E0 ();	break;
 					case 0x00EE:	Op0x00EE ();	break;
-								
+
 				default:
 					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
 					break;

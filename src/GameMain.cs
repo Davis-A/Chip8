@@ -36,6 +36,7 @@ namespace MyGame
 			chip8 machine = new chip8 ();
 			//machine.SetAllPixels (true);
 			machine.Cycle ();
+			machine.Opcode = 0xABCD;
 
 
 
