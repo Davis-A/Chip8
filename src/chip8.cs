@@ -84,8 +84,7 @@ namespace MyGame
 			//get opcode
 			_opcode = GetOpcode ();
 			//temp opcode manipulation
-			_opcode = 0xA111;
-
+			_opcode = 0x5AB0;
 			//decode and execute OpCode
 			RunOpCode ();
 			//execute opcode
@@ -94,46 +93,8 @@ namespace MyGame
 		}
 
 
-		public void RunOpCode ()
-		{
-			switch (_opcode & 0xF000) 
-			{
-				//two opcodes cannot be deciphered from the first 4 bits.
-				case 0x0000:
-				switch (_opcode & 0x00FF) 
-				{
-				case 0x00E0:
-					//clear the screen
-					SetAllPixels (false);
-					_pc += 2;
-					break;
-				case 0x00EE:
-					//return from subroutine
-					_sp--;
-					_pc = _stack [_sp];
-					_pc += 2;
-					break;
-				default:
-					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
-					break;
-				}
-				break;
-
-			case 0xA000:
-				_I =_opcode & 0x0FFF;
-				Console.WriteLine ("The value of the index register is: {0}", _I.ToString ("X4"));
-				_pc += 2;
-				break;
-
-			
 
 
-
-			default:
-				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
-				break;
-			}
-		}
 
 
 
@@ -231,5 +192,150 @@ namespace MyGame
 		{
 			get { return _pixelState; }
 		}
+
+		/*
+		 * ****************************
+		 * Opcode definitions begin here
+		 * ****************************
+		 */
+
+		/// <summary>
+		/// 0x00E0 clears the screen
+		/// </summary>
+		public void Op0x00E0 () 
+		{
+			SetAllPixels (false);
+			_pc += 2;
+		}
+
+
+		/// <summary>
+		/// returns from subroutine
+		/// </summary>
+		public void Op0x00EE () 
+		{
+			_sp--;
+			_pc = _stack [_sp];
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Sets _I to NNN
+		/// </summary>
+		public void Op0xANNN () 
+		{
+			_I = _opcode & 0x0FFF;
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Jups to address NNN
+		/// </summary>
+		public void Op0x1NNN () 
+		{
+			_pc = _opcode & 0x0FFF;
+		}
+
+		/// <summary>
+		/// Calls the subroutine at NNN
+		/// </summary>
+		public void Op0x2NNN () 
+		{
+			_stack [_sp] = _pc;
+			_sp++;
+			_pc = _opcode & 0x0FFF;
+		}
+
+		/// <summary>
+		/// Skip next instruction if register[X] == NN
+		/// </summary>
+		public void op0x3XNN () 
+		{
+			if (_registers [(_opcode & 0x0F00) >> 8] == (_opcode & 0x00FF)) 
+			{
+				_pc += 4;
+			} else 
+			{
+				_pc += 2;
+			}
+		}
+		/// <summary>
+		/// Skip next instruction if register[X] != NN
+		/// </summary>
+		public void op0x4XNN () 
+		{
+			if (_registers [(_opcode & 0x0F00) >> 8] != (_opcode & 0x00FF)) 
+			{
+				_pc += 4;
+			} else 
+			{
+				_pc += 2;
+			}
+		}
+
+		/// <summary>
+		/// Skip next instruction if register[x] == register[Y]
+		/// </summary>
+		public void op0x5XY0 () 
+		{
+			if (_registers [(_opcode & 0x0F00) >> 8] == (_registers [(_opcode & 0x00F0) >> 4])) 
+			{
+				_pc += 4;
+			} else 
+			{
+				_pc += 2;
+			}
+			
+		}
+
+
+	
+
+
+		//Run opcode will be moved higher up later
+		public void RunOpCode ()
+		{
+			switch (_opcode & 0xF000) 
+			{
+				case 0x1000:	Op0x1NNN ();		break;
+				case 0x2000:	Op0x2NNN ();		break;
+				case 0x3000:	op0x3XNN ();		break;
+				case 0x4000:	op0x4XNN ();		break;
+				case 0x5000: 	op0x5XY0 (); 		break;
+				case 0xA000:	Op0xANNN ();		break;
+
+
+			
+
+
+
+
+
+				//non standard opcodes that relies on more than first digit to determine action
+				case 0x0000:
+				switch (_opcode & 0x00FF) 
+				{
+					case 0x00E0: 		Op0x00E0 ();		break;				
+					case 0x00EE:		Op0x00EE ();		break;
+								
+				default:
+					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
+					break;
+				}
+				break;
+
+				//default action if opcode doesn't exist
+			default:
+				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
+				break;
+			}
+		}
+		/*
+		 * ****************************
+		 * Opcode definitions end here
+		 * ****************************
+		 */
+
+
 	}
 }

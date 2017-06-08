@@ -32,7 +32,7 @@ namespace MyGame
         {
 			
 			chip8 machine = new chip8 ();
-			machine.SetAllPixels (true);
+			//machine.SetAllPixels (true);
 			machine.Cycle ();
 
 			//to test pixel on/off state
