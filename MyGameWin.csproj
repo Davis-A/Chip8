@@ -37,7 +37,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <StartAction>Project</StartAction>
-    <ExternalConsole>true</ExternalConsole>
+    <ExternalConsole>false</ExternalConsole>
     <TargetRuntimeId>MS.NET</TargetRuntimeId>
   </PropertyGroup>
   <ItemGroup>

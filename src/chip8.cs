@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 namespace MyGame
 {
 	public class chip8
@@ -7,24 +8,28 @@ namespace MyGame
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
 	
-
+		/*
+		 * All uints should be ushorts as they only need 16 bits
+		 * C# is deciding i cant case bytes into ushorts but i can into uints
+		 * so for now i'm using uints
+		 */
 
 		//current opcode
-		private ushort _opcode;
+		private uint _opcode;
 		//chip8 memory
 		private byte [] _memory;
 		//general purpose registers
 		private byte [] _registers;
 		//Index register
-		private ushort _I;
+		private uint _I;
 		//program counter
-		private ushort _pc;
+		private uint _pc;
 		bool [,] _pixelState;
 
 		//There are 16 levels of stack
-		private ushort [] _stack;
-		//stack pointer
-		private ushort _sp;
+		private uint [] _stack;
+		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).  
+		private byte _sp;
 
 		//Chip8 has hex keypad 0x0 to 0xF
 		private bool [] _keypad;
@@ -55,10 +60,11 @@ namespace MyGame
 			_registers = new byte [16];
 			_I = 0;
 			_pixelState = new bool [chip8.CHIP8_X, chip8.CHIP8_Y];
-			_stack = new ushort [16];
+			_stack = new uint [16];
 			_sp = 0;
 			_keypad = new bool [16];
 			LoadFontSet ();
+			//LoadGame ();
 
 			//sound stuff
 			//_delayTimer = 0;
@@ -66,20 +72,64 @@ namespace MyGame
 
 		}
 
+		public void LoadGame (string title) 
+		{
+			string path = @"Resources\Games\" + title.ToUpper ();
+			if (!File.Exists (path)) 
+			{
+				throw new Exception ("Game not found: " + path);
+			}
+
+			byte [] gamedata = File.ReadAllBytes (path);
+
+			for (int i = 0; i < gamedata.Length; i++) 
+			{
+				_memory [0x200 + i] = gamedata [i];
+			}
+
+
+		}
+
+		//By default an empty LoadGame() will load Pong
+		public void LoadGame () 
+		{
+			LoadGame ("Pong");
+		}
+
+
+
 
 
 		public void Cycle () 
 		{
 			//get opcode
 			_opcode = GetOpcode ();
-			//fetch opcode
+			//TODO increment program counter.  Normally will increment by 2, but sometimes is didfferent
 			//decode opcode
+			RunOpCode ();
 			//execute opcode
 
 			//update Timers
 		}
 
-		public ushort GetOpcode () 
+		public void RunOpCode ()
+		{
+			switch (_opcode & 0xF000) 
+			{
+			case 0xA000:
+				_I =_opcode & 0xFFF;
+				Console.WriteLine ("The value of the index register is: {0}", _I.ToString ("X4"));
+				_pc += 2;
+				break;
+
+
+			default:
+				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
+				break;
+			}
+		}
+
+		public uint GetOpcode () 
 		{
 
 			 /* 
@@ -91,16 +141,8 @@ namespace MyGame
 			 * take the first byte, shift it 8 bits then or it with the second
 			 */
 
-			/*
-			 * BUG
-			 * There may be a bug here.
-			 * It won't work with a ushort.
-			 * so i created a uint, cast the opcode to the uint
-			 * then cast the uint to a ushort;
-			 */ 
 
-			uint result = (uint)_memory [_pc] << 8 | _memory [_pc + 1];
-			return (ushort) result;
+			return (uint)_memory [_pc] << 8 | _memory [_pc + 1];
 		}
 
 		private void LoadFontSet () 
