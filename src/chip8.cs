@@ -351,6 +351,7 @@ namespace MyGame
 		private void Op0x6XNN ()
 		{
 			_registers [X] = (byte)NN;
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -359,6 +360,7 @@ namespace MyGame
 		private void Op0x7XNN ()
 		{
 			_registers [X] += (byte)NN;
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -367,6 +369,7 @@ namespace MyGame
 		private void Op0x8XY0 ()
 		{
 			_registers [X] = _registers [Y];
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -376,6 +379,7 @@ namespace MyGame
 		private void Op0x8XY1 ()
 		{
 			_registers [X] = (byte)((_registers [X]) | (_registers [Y]));
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -385,6 +389,7 @@ namespace MyGame
 		private void Op0x8XY2 ()
 		{
 			_registers [X] = (byte)((_registers [X]) & (_registers [Y]));
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -394,6 +399,7 @@ namespace MyGame
 		private void Op0x8XY3 ()
 		{
 			_registers [X] = (byte)((_registers [X]) ^ (_registers [Y]));
+			_pc += 2;
 		}
 
 		/// <summary>
@@ -405,6 +411,7 @@ namespace MyGame
 		{
 			_registers [X] += _registers [Y];
 			//TODO find out what a carry is!?
+			_pc += 2;
 		}
 
 
