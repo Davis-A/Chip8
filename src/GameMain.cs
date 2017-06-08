@@ -7,21 +7,14 @@ namespace MyGame
     {
 
 		 
-		//chip 8 is 64x32
-		//Therefore 4:1 is 128x64
-		//256x128 is 4:1 of above
-		//512x256 is 8:1
-		const int CHIP8_X = 64;
-		const int CHIP8_Y = 32;
+		//multiplier for chip8 video.  This creates a 16:1 pixel output
 		const int MULTIPLIER = 16;
-
-
 
 		public static void RenderPixel (bool [,] pixelState)
 		{
-			for (int x = 0; x < CHIP8_X; x++) 
+			for (int x = 0; x < chip8.CHIP8_X; x++) 
 			{
-				for (int y = 0; y < CHIP8_Y; y++) 
+				for (int y = 0; y < chip8.CHIP8_Y; y++) 
 				{
 					if (pixelState [x, y])
 					{
@@ -37,26 +30,18 @@ namespace MyGame
 
         public static void Main()
         {
-         	bool [,] pixelState = new bool [CHIP8_X, CHIP8_Y];
-
-	
-
-			pixelState [0, 0] = true;
-			pixelState [1, 1] = true;
-			pixelState [0, 2] = true;
-			pixelState [10, 10] = true;
-
-			chip8 machine = new chip8 (pixelState);
-
-			machine.GetOpcode ();
-
-
-
-
-
+			
+			chip8 machine = new chip8 ();
+         	//to test pixel on/off state
+			/*
+			machine.PixelState [0, 0] = true;
+			machine.PixelState  [1, 1] = true;
+			machine.PixelState  [0, 2] = true;
+			machine.PixelState  [10, 10] = true;
+			*/
 		           
             //Run the game loop
-			SwinGame.OpenGraphicsWindow ("GameMain", CHIP8_X * MULTIPLIER, CHIP8_Y * MULTIPLIER);
+			SwinGame.OpenGraphicsWindow ("Chip8", chip8.CHIP8_X * MULTIPLIER, chip8.CHIP8_Y * MULTIPLIER);
             while(false == SwinGame.WindowCloseRequested())
             {
                 //Fetch the next batch of UI interaction
@@ -65,11 +50,10 @@ namespace MyGame
                 //Clear the screen and draw the framerate
 				SwinGame.ClearScreen(Color.Black);
 
-				RenderPixel (pixelState);  
+				RenderPixel (machine.PixelState);  
 
-				//SwinGame.DrawRectangle (Color.Blue, 50,50, 100, 100);
-               //SwinGame.DrawFramerate(0,0);
-                
+              	
+                //SwinGame.DrawFramerate(0,0);
                 //Draw onto the screen
                 SwinGame.RefreshScreen(60);
             }
