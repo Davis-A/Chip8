@@ -32,8 +32,10 @@ namespace MyGame
         {
 			
 			chip8 machine = new chip8 ();
+			machine.SetAllPixels (true);
 			machine.Cycle ();
-         	//to test pixel on/off state
+
+			//to test pixel on/off state
 			/*
 			machine.PixelState [0, 0] = true;
 			machine.PixelState  [1, 1] = true;

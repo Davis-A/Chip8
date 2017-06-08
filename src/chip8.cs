@@ -64,7 +64,7 @@ namespace MyGame
 			_sp = 0;
 			_keypad = new bool [16];
 			LoadFontSet ();
-			//LoadGame ();
+			LoadGame ();
 
 			//sound stuff
 			//_delayTimer = 0;
@@ -72,18 +72,77 @@ namespace MyGame
 
 		}
 
-		public void LoadGame (string title) 
+
+
+
+		/// <summary>
+		/// Main Cycle.  For optimum emulation it should be run in a loop 60x 
+		/// per second
+		/// </summary>
+		public void Cycle () 
+		{
+			//get opcode
+			_opcode = GetOpcode ();
+			//temp opcode manipulation
+			//_opcode = 0x00E0;
+
+			//decode and execute OpCode
+			RunOpCode ();
+			//execute opcode
+
+			//update Timers
+		}
+
+
+		public void RunOpCode ()
+		{
+			switch (_opcode & 0xF000) 
+			{
+				//two opcodes cannot be deciphered from the first 4 bits.
+				case 0x0000:
+				switch (_opcode & 0x00FF) 
+				{
+				case 0x00E0:
+					//clear the screen
+					SetAllPixels (false);
+					break;
+				case 0x00EE:
+					//TODO return from subroutine
+					break;
+				default:
+					Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
+					break;
+				}
+				break;
+
+			case 0xA000:
+				_I =_opcode & 0xFFF;
+				Console.WriteLine ("The value of the index register is: {0}", _I.ToString ("X4"));
+				_pc += 2;
+				break;
+
+			
+
+
+
+			default:
+				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
+				break;
+			}
+		}
+
+
+
+		public void LoadGame (string title)
 		{
 			string path = @"Resources\Games\" + title.ToUpper ();
-			if (!File.Exists (path)) 
-			{
+			if (!File.Exists (path)) {
 				throw new Exception ("Game not found: " + path);
 			}
 
 			byte [] gamedata = File.ReadAllBytes (path);
 
-			for (int i = 0; i < gamedata.Length; i++) 
-			{
+			for (int i = 0; i < gamedata.Length; i++) {
 				_memory [0x200 + i] = gamedata [i];
 			}
 
@@ -91,42 +150,9 @@ namespace MyGame
 		}
 
 		//By default an empty LoadGame() will load Pong
-		public void LoadGame () 
+		public void LoadGame ()
 		{
 			LoadGame ("Pong");
-		}
-
-
-
-
-
-		public void Cycle () 
-		{
-			//get opcode
-			_opcode = GetOpcode ();
-			//TODO increment program counter.  Normally will increment by 2, but sometimes is didfferent
-			//decode opcode
-			RunOpCode ();
-			//execute opcode
-
-			//update Timers
-		}
-
-		public void RunOpCode ()
-		{
-			switch (_opcode & 0xF000) 
-			{
-			case 0xA000:
-				_I =_opcode & 0xFFF;
-				Console.WriteLine ("The value of the index register is: {0}", _I.ToString ("X4"));
-				_pc += 2;
-				break;
-
-
-			default:
-				Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));
-				break;
-			}
 		}
 
 		public uint GetOpcode () 
@@ -144,6 +170,7 @@ namespace MyGame
 
 			return (uint)_memory [_pc] << 8 | _memory [_pc + 1];
 		}
+
 
 		private void LoadFontSet () 
 		{ 
@@ -171,6 +198,25 @@ namespace MyGame
 			for (int i = 0; i < 80; i++) 
 			{
 				_memory [i] = fontset [i];
+			}
+		}
+
+
+	
+
+
+		/// <summary>
+		/// Iterate through all pixels and set them
+		/// equal to  the parameter
+		/// </summary>
+		public void SetAllPixels (bool setvalue) 
+		{
+			for (int x = 0; x < chip8.CHIP8_X; x++) 
+			{
+				for (int y = 0; y < chip8.CHIP8_Y; y++) 
+				{
+					_pixelState [x, y] = setvalue;
+				}
 			}
 		}
 
