@@ -93,7 +93,6 @@ namespace MyGame
 		/// </summary>
 		public void Cycle ()
 		{
-
 			//get opcode
 			_opcode = GetOpcode ();
 			Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
@@ -354,7 +353,7 @@ namespace MyGame
 		private void Op0x1NNN ()
 		{
 			_pc = OpcodeNNN;
-		}
+			}
 
 		/// <summary>
 		/// Calls the subroutine at NNN
@@ -623,10 +622,19 @@ namespace MyGame
 			{
 				for (int xDelta = 0; xDelta < 8; xDelta++) 
 				{
-					if ( (_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
+					if ( (_pixelState [_registers [OpcodeX] + xDelta, _registers [OpcodeY] + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
 					{
 						_registers [0xF] = 1;
 					}
+
+					//Console.WriteLine ("X coordinate: {0}\tY coordinate: {1}", _registers [OpcodeX + xDelta] + xDelta.ToString ("D2"), _registers [OpcodeY +yDelta] + yDelta.ToString ("D2"));
+					Console.WriteLine ("Reading register[{0}] and register [{1}]", OpcodeX + xDelta, OpcodeY + yDelta);
+
+					//Console.WriteLine (_registers [OpcodeX + xDelta] );
+					//Console.WriteLine (_registers [OpcodeY + yDelta] );
+
+					_pixelState[_registers[OpcodeX + xDelta], _registers[OpcodeY + yDelta]] = IsbitOn (_memory [_I + yDelta], xDelta);
+
 					_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
 				}
 			}

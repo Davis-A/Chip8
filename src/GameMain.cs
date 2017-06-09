@@ -34,7 +34,6 @@ namespace MyGame
         {
 			
 			chip8 machine = new chip8 ();
-			//machine.SetAllPixels (true);
 
 
 
@@ -57,7 +56,7 @@ namespace MyGame
               	
                 SwinGame.DrawFramerate(0,0);
                 //Draw onto the screen
-                SwinGame.RefreshScreen(10);
+                SwinGame.RefreshScreen(5);
             }
 
         }
