@@ -8,7 +8,7 @@ namespace MyGame
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
 		public const int TOTAL_REGISTERS = 16;
-		public const int MAX_STACK_SIZE = 16;
+		public const int MAX_STACK_SIZE = 16;	//There are 16 levels of stack
 		public const int TOTAL_MEMORY = 4096;
 		public const ushort INITIAL_PROGRAM_ADDRESS = 0x200;
 		public const int TOTAL_KEYS = 16;
@@ -32,9 +32,10 @@ namespace MyGame
 		private ushort _I;
 		//program counter
 		private ushort _pc;
-		bool [,] _pixelState;
+		private bool [,] _pixelState;
+		private bool _halt;		//See Opcode 0xFX0A for more details
 
-		//There are 16 levels of stack
+
 		private ushort [] _stack;
 		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).
 		private byte _sp;
@@ -75,6 +76,7 @@ namespace MyGame
 			_keypad = new bool [TOTAL_KEYS];
 			LoadFontSet ();
 			LoadGame ();
+			_halt = false;
 
 			//sound stuff
 			_delayTimer = 0;
@@ -91,21 +93,18 @@ namespace MyGame
 		/// </summary>
 		public void Cycle ()
 		{
+
 			//get opcode
-			//_opcode = GetOpcode ();
+			_opcode = GetOpcode ();
+			Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
 			//decode and execute OpCode
-			_I = 0x1 * 5;
 			RunOpCode ();
-
-
-
-			//update Timers
+			//if system is halted, do not update timers.  See 0xFX0A
+			if (!_halt) 
+			{
+				UpdateTimers ();
+			}
 		}
-
-
-
-
-
 
 
 		public void LoadGame (string title)
@@ -126,6 +125,19 @@ namespace MyGame
 		public void LoadGame ()
 		{
 			LoadGame ("Pong");
+		}
+
+		public void UpdateTimers () 
+		{
+			if (_soundTimer > 0) 
+			{
+				_soundTimer--;
+			}
+
+			if (_delayTimer > 0) 
+			{
+				_delayTimer--;
+			}
 		}
 
 		public ushort GetOpcode ()
@@ -359,13 +371,12 @@ namespace MyGame
 		/// </summary>
 		private void Op0x3XNN ()
 		{
-			if (_registers [OpcodeX] == OpcodeNN)
-			{
-				_pc += 4;
-			} else
+			if (_registers [OpcodeX] == OpcodeNN) 
 			{
 				_pc += 2;
 			}
+			_pc += 2;
+		
 		}
 		/// <summary>
 		/// Skip next instruction if register[X] != NN
@@ -597,18 +608,6 @@ namespace MyGame
 			{
 				throw new Exception ("Opcode 0xDXYN hit an outlier where N = 0.  Investigate an additional opcode DXY0 where sprite is 16x16");
 			}
-
-
-
-			/*
-			 * BUG potential there may be a bug based on the order of bits drawn
-			 * assume a sprite where N = 2 then an 8x2 sprite
-			 * And the data is 1100110 11001110
-			 * Do we read from byte0 least signficant to most, then byte1 from least to most
-			 * http://imgur.com/a/4xq1w
-			 * Given testing for font sprites it's in reverse
-			 */
-
 			/*
 			 * As each sprite is 8 pixels horizontal, each row is one byte
 			 * Therefore xDelta can be both the horizontal offset for the pixel
@@ -617,10 +616,7 @@ namespace MyGame
 			 * To get the next byte in memory we can use the yDelta
 			 */
 
-			//TODO write code to handle sprites wrapping around the screen so if it goes off an edge, half of it appears of the other sid
-
-
-
+			//TODO write code to handle sprites wrapping around the screen so if it goes off an edge, half of it appears of the other side
 
 			_registers [0xF] = 0;
 			for (int yDelta = 0; yDelta < OpcodeN; yDelta++) 
@@ -680,25 +676,25 @@ namespace MyGame
 		private void Op0xFX0A ()
 		{
 			/*
-			 * We need to create a way for the machine to not internally change its state
-			 * while allowing it to continue cycling so external input can change a key state
-			 * If the program counter isn't incremented each code loop will result in an identical chip8 loop
-			 * Therefore it will continue to enter this opcode until a condition to increment the program counter is met
-			 * Will iterate over the keypad.  
-			 * If a key is down then it sets the register[X] to it's keypad number and set a trigger boolean
-			 * After the loop, if the trigger has been set the program counter will be incremented
+			 * Halt bool.  This Opcode tells the Chip8 to halt pending an interrupt on the keypad 
+			 * However to get input we need to escape this opcode method and allow the calling program to process inputs and modify keystates
+			 * When halt bool is set to true this opcode will not increment the program counter
+			 * Nor will the system update the sound and countdown timers
+			 * This effectively halts the systems state as it will continue to execute this opcode
+			 * When a keystate has been set to down (on / true) then the halt bool will be turned off and allow the program counter to increment
 			 */
-			bool trigger = false;
+
+			_halt = true;
 
 			for (int keynum = 0; keynum > TOTAL_KEYS; keynum++) 
 			{
 				if (_keypad [keynum]) 
 				{
 					_registers [OpcodeX] = (byte)keynum;
-					trigger = true;
+					_halt = false;
 				}
 
-				if (trigger) 
+				if (!_halt) 
 				{
 					_pc += 2;
 				}
@@ -743,8 +739,7 @@ namespace MyGame
 		private void Op0xFX29 () 
 		{
 			/*
-			 * Took a rough stab at implementation
-			 * If font is loaded at the start of memory
+			 * Font is loaded at the start of memory
 			 * And each font sprite takes 5 bytes. 
 			 * Therefore font location is
 			 * 0 + fontNumber * 5
@@ -752,6 +747,47 @@ namespace MyGame
 			_I = (ushort)(_registers [OpcodeX] * 5);
 			_pc += 2;
 		}
+
+		/// <summary>
+		/// Stores Binary-Coded Decimal of Register[X] at memory[Memory_Index]
+		/// </summary>
+		private void Op0xFX33 () 
+		{
+			_memory [_I] = (byte)(_registers [OpcodeX] / 10);
+			_memory [_I + 1] = (byte)((_registers [OpcodeX] / 10) % 10);
+			_memory [_I + 2] = (byte)(_registers [OpcodeX] % 10);
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Stores Register[0] to (inclusive) Register[X] in memory
+		/// Starting at memory[Memory_Index]
+		/// </summary>
+		private void Op0xFX55 () 
+		{
+			for (int i = 0; i <= OpcodeX; i++) 
+			{
+				_memory [_I + i] = _registers [0 + i];
+			}
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Loads memory into registers
+		/// Starting at memory[Memory_Index]
+		/// Loaded into Register[0] to (inclusive) Register[X]
+		/// </summary>
+		private void Op0xFX65 () 
+		{
+			for (int i = 0; i <= OpcodeX; i++)
+			{
+				 _registers [0 + i] = _memory [_I + i];
+			}
+			_pc += 2;
+		}
+
+
+
 
 
 
@@ -799,6 +835,9 @@ namespace MyGame
 									case 0x0013: 	Op0xFX18 ();	break;
 									case 0x001E: 	Op0xFX1E (); 	break;
 									case 0x0029:	Op0xFX29 ();	break;
+									case 0x0033: 	Op0xFX33 ();	break;
+									case 0x0055:	Op0xFX55 (); 	break;
+									case 0x0065:	Op0xFX65 (); 	break;
 								}break;
 
 

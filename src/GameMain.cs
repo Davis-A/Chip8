@@ -37,16 +37,9 @@ namespace MyGame
 			//machine.SetAllPixels (true);
 
 
-			machine.Opcode = 0xD115;
-			machine.Cycle ();
 
-			//to test pixel on/off state
-			/*
-			machine.PixelState [0, 0] = true;
-			machine.PixelState  [1, 1] = true;
-			machine.PixelState  [0, 2] = true;
-			machine.PixelState  [10, 10] = true;
-			*/
+
+
 		           
             //Run the game loop
 			SwinGame.OpenGraphicsWindow ("Chip8", chip8.CHIP8_X * MULTIPLIER, chip8.CHIP8_Y * MULTIPLIER);
@@ -54,6 +47,7 @@ namespace MyGame
             {
                 //Fetch the next batch of UI interaction
                 SwinGame.ProcessEvents();
+				machine.Cycle ();
                 
                 //Clear the screen and draw the framerate
 				SwinGame.ClearScreen(Color.Black);
@@ -61,9 +55,9 @@ namespace MyGame
 				RenderPixel (machine.PixelState);  
 
               	
-                //SwinGame.DrawFramerate(0,0);
+                SwinGame.DrawFramerate(0,0);
                 //Draw onto the screen
-                SwinGame.RefreshScreen(60);
+                SwinGame.RefreshScreen(10);
             }
 
         }
