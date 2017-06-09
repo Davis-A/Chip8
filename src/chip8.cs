@@ -7,7 +7,13 @@ namespace MyGame
 
 		public const int CHIP8_X = 64;
 		public const int CHIP8_Y = 32;
+		public const int TOTAL_REGISTERS = 16;
+		public const int MAX_STACK_SIZE = 16;
+		public const int TOTAL_MEMORY = 4096;
 		public const ushort INITIAL_PROGRAM_ADDRESS = 0x200;
+		public const int TOTAL_KEYS = 16;
+
+
 
 		/*
 		 * All ushorts should be ushorts as they only need 16 bits
@@ -60,13 +66,13 @@ namespace MyGame
 			//progam counter starts at 0x200 because a game should be in memory
 			_pc = INITIAL_PROGRAM_ADDRESS;
 			_opcode = 0;
-			_memory = new byte [4096];
-			_registers = new byte [16];
+			_memory = new byte [TOTAL_MEMORY];
+			_registers = new byte [TOTAL_REGISTERS];
 			_I = 0;
 			_pixelState = new bool [chip8.CHIP8_X, chip8.CHIP8_Y];
-			_stack = new ushort [16];
+			_stack = new ushort [MAX_STACK_SIZE];
 			_sp = 0;
-			_keypad = new bool [16];
+			_keypad = new bool [TOTAL_KEYS];
 			LoadFontSet ();
 			LoadGame ();
 
@@ -86,12 +92,12 @@ namespace MyGame
 		public void Cycle ()
 		{
 			//get opcode
-			_opcode = GetOpcode ();
-			//temp opcode manipulation
-			_opcode = 0x5AB0;
+			//_opcode = GetOpcode ();
 			//decode and execute OpCode
+			_I = 0x1 * 5;
 			RunOpCode ();
-			//execute opcode
+
+
 
 			//update Timers
 		}
@@ -176,6 +182,7 @@ namespace MyGame
 		/// <summary>
 		/// Iterate through all pixels and set them
 		/// equal to  the parameter
+		/// testing use only
 		/// </summary>
 		public void SetAllPixels (bool setvalue)
 		{
@@ -189,16 +196,31 @@ namespace MyGame
 		}
 
 		/// <summary>
-		/// Method will return the value of the bit at that index
-		/// 0 is least significant bit
-		/// 7 is most significant bit
+		/// Iterate through all bytes and set to FF
+		/// Testing use only
 		/// </summary>
-		public bool IsbitOn (byte b, int i) 
+		public void SetAllMemoryOn () 
 		{
+			for (int i = 0; i < TOTAL_MEMORY; i++) 
+			{
+				_memory [i] = 0xFF;
+			}
+		}
+
+		/// <summary>
+		/// Method will return the value of the bit at that index
+		/// 7 is least significant bit
+		/// 0 is most significant bit
+		/// </summary>
+		public bool IsbitOn (byte b, int q) 
+		{
+			int i = 7 - q;
+
 			if (i < 0 || i > 7) 
 			{
 				throw new Exception ("IsbitOn must be given an index (inclusive) betwen 0 & 7");
 			}
+
 
 			byte result = (byte)(b >> i);
 			result = (byte)(result & 0x01);
@@ -413,7 +435,7 @@ namespace MyGame
 
 		/// <summary>
 		/// Register X is set to register[X] Bitwise AND regester[Y]
-		/// register[X] = register[X] & register[Y]
+		/// register[X] = register[X] Bitwise AND register[Y]
 		/// </summary>
 		private void Op0x8XY2 ()
 		{
@@ -537,6 +559,10 @@ namespace MyGame
 		private void Op0xBNNN () 
 		{
 			_pc = (ushort)(_registers [0] + OpcodeNNN);
+			/*
+			 * BUG Given that we are assigning the program counter a new value
+			 * Do we assume that it doesn't need to be incremented?
+			 */
 		}
 
 		/// <summary>
@@ -546,24 +572,41 @@ namespace MyGame
 		private void Op0xCXNN () 
 		{
 			_registers [OpcodeX] = (byte)(rand.Next (0, 255) & OpcodeNN);
+			_pc += 2;
 		}
 
 
 
+		  
+
+
+
 		/// <summary>
+		/// Set Register[0xF] = 0
 		/// Draws a sprite at coordinate (Register[X], Register[Y])
 		/// Sprite is 8x8
 		/// Bit state is determined from reading memory at the index register 
-		/// If a pixel is on and it is turned off.  Register[0xF] is set to 1
+		/// If a pixel is on and it is turned off.  Register[0xF] is set to 1 (collision detection)
 		/// </summary>
 		private void Op0xDXYN () 
 		{
+			//If this exception is hit investigate Opcode DXY0.  
+			// http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
+			//It is a Super Chip 8 opcode
+			if (OpcodeN == 0) 
+			{
+				throw new Exception ("Opcode 0xDXYN hit an outlier where N = 0.  Investigate an additional opcode DXY0 where sprite is 16x16");
+			}
+
+
+
 			/*
 			 * BUG potential there may be a bug based on the order of bits drawn
 			 * assume a sprite where N = 2 then an 8x2 sprite
 			 * And the data is 1100110 11001110
 			 * Do we read from byte0 least signficant to most, then byte1 from least to most
 			 * http://imgur.com/a/4xq1w
+			 * Given testing for font sprites it's in reverse
 			 */
 
 			/*
@@ -574,11 +617,15 @@ namespace MyGame
 			 * To get the next byte in memory we can use the yDelta
 			 */
 
+			//TODO write code to handle sprites wrapping around the screen so if it goes off an edge, half of it appears of the other sid
+
+
+
 
 			_registers [0xF] = 0;
-			for (int yDelta = 0; yDelta > OpcodeN; yDelta++) 
+			for (int yDelta = 0; yDelta < OpcodeN; yDelta++) 
 			{
-				for (int xDelta = 0; xDelta > 8; xDelta++) 
+				for (int xDelta = 0; xDelta < 8; xDelta++) 
 				{
 					if ( (_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
 					{
@@ -587,6 +634,122 @@ namespace MyGame
 					_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
 				}
 			}
+			_pc += 2;
+		}
+
+
+		/// <summary>
+		/// If keypad[X] is on skip an instruction
+		/// </summary>
+		private void Op0xEX9E () 
+		{
+			if (_keypad [OpcodeX]) 
+			{
+				_pc += 2;
+			}
+			_pc += 2;
+		}
+
+
+		/// <summary>
+		/// If keypad[X] is off skip an instruction
+		/// </summary>
+		private void Op0xEXA1 ()
+		{
+			if (!_keypad [OpcodeX]) 
+			{
+				_pc += 2;
+			}
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Sets Register[X] = DelayTimer
+		/// </summary>
+		private void Op0xFX07 () 
+		{
+			_registers [OpcodeX] = _delayTimer;
+			_pc += 2;
+		}
+
+
+		/// <summary>
+		/// Halts system till a key is pressed
+		/// Stores keynumber of key pressed in Register[X]
+		/// </summary>
+		private void Op0xFX0A ()
+		{
+			/*
+			 * We need to create a way for the machine to not internally change its state
+			 * while allowing it to continue cycling so external input can change a key state
+			 * If the program counter isn't incremented each code loop will result in an identical chip8 loop
+			 * Therefore it will continue to enter this opcode until a condition to increment the program counter is met
+			 * Will iterate over the keypad.  
+			 * If a key is down then it sets the register[X] to it's keypad number and set a trigger boolean
+			 * After the loop, if the trigger has been set the program counter will be incremented
+			 */
+			bool trigger = false;
+
+			for (int keynum = 0; keynum > TOTAL_KEYS; keynum++) 
+			{
+				if (_keypad [keynum]) 
+				{
+					_registers [OpcodeX] = (byte)keynum;
+					trigger = true;
+				}
+
+				if (trigger) 
+				{
+					_pc += 2;
+				}
+
+			}
+		}
+
+		/// <summary>
+		/// sets Delay_Timer = Register[X]
+		/// </summary>
+		private void Op0xFX15 () 
+		{
+			_delayTimer = _registers [OpcodeX];
+			_pc += 2;
+		}
+
+
+		/// <summary>
+		/// Sets Sound_Timer to Register[X]
+		/// </summary>
+		private void Op0xFX18 () 
+		{
+			_soundTimer = _registers [OpcodeX];
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Adds Register[X] to the MemoryIndex
+		/// I += _Register[X]
+		/// </summary>
+		private void Op0xFX1E () 
+		{
+			_I += _registers [OpcodeX];
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Each font digit has a sprite to draw it to screen
+		/// Register[X] contains a number that needs to be drawn to the screen
+		/// Sets Memory_Index to the memory location of the sprite corrisponding in Register[X]
+		/// </summary>
+		private void Op0xFX29 () 
+		{
+			/*
+			 * Took a rough stab at implementation
+			 * If font is loaded at the start of memory
+			 * And each font sprite takes 5 bytes. 
+			 * Therefore font location is
+			 * 0 + fontNumber * 5
+			 */
+			_I = (ushort)(_registers [OpcodeX] * 5);
 			_pc += 2;
 		}
 
@@ -606,29 +769,44 @@ namespace MyGame
 				case 0x7000: 	Op0x7XNN (); 	break;
 				case 0x8000: 	switch (_opcode & 0x000F)
 								{
-									case 0x0000: Op0x8XY0 (); 	break;
-									case 0x0001: Op0x8XY1 ();	break;
-									case 0x0002: Op0x8XY2 (); 	break;
-									case 0x0003: Op0x8XY3 (); 	break;
-									case 0x0004: Op0x8XY4 (); 	break;
-									case 0x0005: Op0x8XY5 ();	break;
-									case 0x0006: Op0x8XY6 (); 	break;
-									case 0x0007: Op0x8XY7 (); 	break;
-									case 0x000E: Op0x8XYE (); 	break;
-									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
+									case 0x0000:	Op0x8XY0 (); 	break;
+									case 0x0001:	Op0x8XY1 ();	break;
+									case 0x0002:	Op0x8XY2 (); 	break;
+									case 0x0003:	Op0x8XY3 (); 	break;
+									case 0x0004:	Op0x8XY4 (); 	break;
+									case 0x0005:	Op0x8XY5 ();	break;
+									case 0x0006:	Op0x8XY6 (); 	break;
+									case 0x0007:	Op0x8XY7 (); 	break;
+									case 0x000E:	Op0x8XYE (); 	break;
+									default: 		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 								}break;
 				case 0x9000:	Op0x9XY0 ();	break;
 				case 0xA000:	Op0xANNN ();	break;
 				case 0xB000: 	Op0xBNNN (); 	break;
 				case 0xC000: 	Op0xCXNN (); 	break;
-				case 0xD000: 	Op0xDXYN (); break;
+				case 0xD000: 	Op0xDXYN (); 	break;
+				case 0xE000: 	switch (_opcode & 0x00FF) 
+								{
+									case 0x009E: 	Op0xEX9E ();	break;
+									case 0x00A1: 	Op0xEXA1 ();	break;
+									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+								}break;
+				case 0xF000:	switch (_opcode & 0x00FF) 
+								{
+									case 0x0007: 	Op0xFX07 (); 	break;
+									case 0x000A: 	Op0xFX0A (); 	break;
+									case 0x0015: 	Op0xFX15 (); 	break;
+									case 0x0013: 	Op0xFX18 ();	break;
+									case 0x001E: 	Op0xFX1E (); 	break;
+									case 0x0029:	Op0xFX29 ();	break;
+								}break;
 
 
 				case 0x0000:	switch (_opcode & 0x00FF)
 								{
 									case 0x00E0: 	Op0x00E0 ();	break;
 									case 0x00EE:	Op0x00EE ();	break;
-									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
+									default:		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 								}break;
 
 				//default action if opcode doesn't exist
@@ -640,6 +818,7 @@ namespace MyGame
 		 * Opcode definitions end here
 		 * ****************************
 		 */
+
 
 
 	}

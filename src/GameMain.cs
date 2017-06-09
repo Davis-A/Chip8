@@ -35,10 +35,10 @@ namespace MyGame
 			
 			chip8 machine = new chip8 ();
 			//machine.SetAllPixels (true);
+
+
+			machine.Opcode = 0xD115;
 			machine.Cycle ();
-			machine.Opcode = 0xABCD;
-
-
 
 			//to test pixel on/off state
 			/*
