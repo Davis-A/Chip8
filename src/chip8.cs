@@ -114,8 +114,6 @@ namespace MyGame
 			for (int i = 0; i < gamedata.Length; i++) {
 				_memory [INITIAL_PROGRAM_ADDRESS + i] = gamedata [i];
 			}
-
-
 		}
 
 		//By default an empty LoadGame() will load Pong
@@ -139,6 +137,7 @@ namespace MyGame
 
 			return (ushort)(_memory [_pc] << 8 | _memory [_pc + 1]);
 		}
+
 
 
 		private void LoadFontSet ()
@@ -189,6 +188,29 @@ namespace MyGame
 			}
 		}
 
+		/// <summary>
+		/// Method will return the value of the bit at that index
+		/// 0 is least significant bit
+		/// 7 is most significant bit
+		/// </summary>
+		public bool IsbitOn (byte b, int i) 
+		{
+			if (i < 0 || i > 7) 
+			{
+				throw new Exception ("IsbitOn must be given an index (inclusive) betwen 0 & 7");
+			}
+
+			byte result = (byte)(b >> i);
+			result = (byte)(result & 0x01);
+			if (result == 1) 
+			{
+				return true;
+			} else 
+			{
+				return false;
+			}
+		}
+
 
 		//temp method
 		public ushort Opcode
@@ -226,12 +248,23 @@ namespace MyGame
 		/// Returns the third and 4th nibble from Opcode
 		/// (OPCODE AND 0x00FF)
 		/// </summary>
-		/// <value>The nn.</value>
 		public ushort OpcodeNN
 		{
 			get
 			{
 				return (ushort)(_opcode & 0x00FF);
+			}
+		}
+
+		/// <summary>
+		/// Returns the 4th nibble from Opcode
+		/// (OPCODE AND 0x000F)
+		/// </summary>
+		public ushort OpcodeN 
+		{
+			get 
+			{
+				return (ushort)(_opcode & 0x000F);
 			}
 		}
 
@@ -506,9 +539,55 @@ namespace MyGame
 			_pc = (ushort)(_registers [0] + OpcodeNNN);
 		}
 
+		/// <summary>
+		/// register[X] is assigned a random number based on a generated random 
+		/// and a bitwise against NN
+		/// </summary>
 		private void Op0xCXNN () 
 		{
 			_registers [OpcodeX] = (byte)(rand.Next (0, 255) & OpcodeNN);
+		}
+
+
+
+		/// <summary>
+		/// Draws a sprite at coordinate (Register[X], Register[Y])
+		/// Sprite is 8x8
+		/// Bit state is determined from reading memory at the index register 
+		/// If a pixel is on and it is turned off.  Register[0xF] is set to 1
+		/// </summary>
+		private void Op0xDXYN () 
+		{
+			/*
+			 * BUG potential there may be a bug based on the order of bits drawn
+			 * assume a sprite where N = 2 then an 8x2 sprite
+			 * And the data is 1100110 11001110
+			 * Do we read from byte0 least signficant to most, then byte1 from least to most
+			 * http://imgur.com/a/4xq1w
+			 */
+
+			/*
+			 * As each sprite is 8 pixels horizontal, each row is one byte
+			 * Therefore xDelta can be both the horizontal offset for the pixel
+			 * and the index for which bit from the array is being considered
+			 * Given above as each byte is a horizontal row
+			 * To get the next byte in memory we can use the yDelta
+			 */
+
+
+			_registers [0xF] = 0;
+			for (int yDelta = 0; yDelta > OpcodeN; yDelta++) 
+			{
+				for (int xDelta = 0; xDelta > 8; xDelta++) 
+				{
+					if ( (_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
+					{
+						_registers [0xF] = 1;
+					}
+					_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
+				}
+			}
+			_pc += 2;
 		}
 
 
@@ -542,6 +621,9 @@ namespace MyGame
 				case 0xA000:	Op0xANNN ();	break;
 				case 0xB000: 	Op0xBNNN (); 	break;
 				case 0xC000: 	Op0xCXNN (); 	break;
+				case 0xD000: 	Op0xDXYN (); break;
+
+
 				case 0x0000:	switch (_opcode & 0x00FF)
 								{
 									case 0x00E0: 	Op0x00E0 ();	break;
