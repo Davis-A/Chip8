@@ -37,10 +37,12 @@ namespace MyGame
 		private bool [] _keypad;
 
 		//sound stuff
-		/*
 		private byte _delayTimer;
 		private byte _soundTimer;
-		*/
+
+
+		Random rand = new Random ();
+
 
 
 		public chip8 ()
@@ -69,8 +71,8 @@ namespace MyGame
 			LoadGame ();
 
 			//sound stuff
-			//_delayTimer = 0;
-			//_soundTimer = 0;
+			_delayTimer = 0;
+			_soundTimer = 0;
 
 		}
 
@@ -278,14 +280,6 @@ namespace MyGame
 			_pc += 2;
 		}
 
-		/// <summary>
-		/// Sets _I to NNN
-		/// </summary>
-		private void Op0xANNN ()
-		{
-			_I = OpcodeNNN;
-			_pc += 2;
-		}
 
 		/// <summary>
 		/// Jups to address NNN
@@ -425,7 +419,7 @@ namespace MyGame
 		}
 
 		/// <summary>
-		/// Register[X] -= Register[Y]
+		/// Register[X] = Register[X] - Register[Y]
 		/// Register[0xF] (final register) is set to 0 when there is a borrow, 1 otherwise
 		/// </summary>
 		private void Op0x8XY5 () 
@@ -442,6 +436,80 @@ namespace MyGame
 			_pc += 2;
 		}
 
+		/// <summary>
+		/// register[0xF] is set to the least significant bit of register [X];
+		/// register[X] is bitshifted right one.
+		/// /// </summary>
+		private void Op0x8XY6 () 
+		{
+			_registers [0xF] = (byte)(_registers [OpcodeX] & 0x01);
+			_registers [OpcodeX] = (byte)(_registers [OpcodeX] >> 1);
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// register[X] = register[Y] - register[X];
+		/// register[0xF] is set to 0 when there is a borrow, 1 when there isn't
+		/// </summary>
+		private void Op0x8XY7 () 
+		{
+			if (_registers [OpcodeY] < _registers [OpcodeX]) 
+			{
+				_registers [0xF] = 0;
+			} else 
+			{
+				_registers [0xF] = 1;
+			}
+			_registers [OpcodeX] = (byte)(_registers [OpcodeY] - _registers [OpcodeX]);
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// Register[0xF] is set to the most valuable bit of Register[X]
+		/// Register[0xF] = Register[X] & 0x80
+		/// Register[X] is shifted left by one
+		/// </summary>
+		private void Op0x8XYE () 
+		{
+			_registers [0xF] = (byte)(_registers [OpcodeX] & 0xF);
+			_registers [OpcodeX] = (byte)(_registers [OpcodeX] << 1);
+			_pc += 2;
+		}
+		/// <summary>
+		/// if Register[X] != Register[Y] then skip an intruction.
+		/// </summary>
+		private void Op0x9XY0 () 
+		{
+			if (_registers [OpcodeX] != (_registers [OpcodeY])) 
+			{
+				_pc += 4;
+			} else 
+			{
+				_pc += 2;
+			}
+		}
+
+		/// <summary>
+		/// Sets _I to NNN
+		/// </summary>
+		private void Op0xANNN ()
+		{
+			_I = OpcodeNNN;
+			_pc += 2;
+		}
+
+		/// <summary>
+		/// jump to address Register[0] + NNN
+		/// </summary>
+		private void Op0xBNNN () 
+		{
+			_pc = (ushort)(_registers [0] + OpcodeNNN);
+		}
+
+		private void Op0xCXNN () 
+		{
+			_registers [OpcodeX] = (byte)(rand.Next (0, 255) & OpcodeNN);
+		}
 
 
 
@@ -465,10 +533,15 @@ namespace MyGame
 									case 0x0003: Op0x8XY3 (); 	break;
 									case 0x0004: Op0x8XY4 (); 	break;
 									case 0x0005: Op0x8XY5 ();	break;
-
+									case 0x0006: Op0x8XY6 (); 	break;
+									case 0x0007: Op0x8XY7 (); 	break;
+									case 0x000E: Op0x8XYE (); 	break;
 									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 								}break;
+				case 0x9000:	Op0x9XY0 ();	break;
 				case 0xA000:	Op0xANNN ();	break;
+				case 0xB000: 	Op0xBNNN (); 	break;
+				case 0xC000: 	Op0xCXNN (); 	break;
 				case 0x0000:	switch (_opcode & 0x00FF)
 								{
 									case 0x00E0: 	Op0x00E0 ();	break;
