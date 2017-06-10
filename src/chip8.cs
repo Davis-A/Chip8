@@ -594,7 +594,7 @@ namespace MyGame
 		/// <summary>
 		/// Set Register[0xF] = 0
 		/// Draws a sprite at coordinate (Register[X], Register[Y])
-		/// Sprite is 8x8
+		/// Sprite is 8xN
 		/// Bit state is determined from reading memory at the index register 
 		/// If a pixel is on and it is turned off.  Register[0xF] is set to 1 (collision detection)
 		/// </summary>
@@ -622,18 +622,25 @@ namespace MyGame
 			{
 				for (int xDelta = 0; xDelta < 8; xDelta++) 
 				{
+					
+					/*
 					if ( (_pixelState [_registers [OpcodeX] + xDelta, _registers [OpcodeY] + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
 					{
 						_registers [0xF] = 1;
 					}
+					*/
+
+					Console.WriteLine (_registers [OpcodeX] + xDelta);
+					Console.WriteLine (_registers [OpcodeY] + yDelta);
+
 
 					//Console.WriteLine ("X coordinate: {0}\tY coordinate: {1}", _registers [OpcodeX + xDelta] + xDelta.ToString ("D2"), _registers [OpcodeY +yDelta] + yDelta.ToString ("D2"));
-					Console.WriteLine ("Reading register[{0}] and register [{1}]", OpcodeX + xDelta, OpcodeY + yDelta);
+
 
 					//Console.WriteLine (_registers [OpcodeX + xDelta] );
 					//Console.WriteLine (_registers [OpcodeY + yDelta] );
 
-					_pixelState[_registers[OpcodeX + xDelta], _registers[OpcodeY + yDelta]] = IsbitOn (_memory [_I + yDelta], xDelta);
+					_pixelState[_registers[OpcodeX] + xDelta, _registers[OpcodeY] + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
 
 					_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
 				}
