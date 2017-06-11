@@ -50,9 +50,6 @@ namespace MyGame
 
 		Random rand = new Random ();
 
-		//temp shit
-		public byte [] _videoMemory = new byte [64 * 32];
-
 
 
 
@@ -605,7 +602,6 @@ namespace MyGame
 
 
 
-
 		/// <summary>
 		/// Set Register[0xF] = 0
 		/// Draws a sprite at coordinate (Register[X], Register[Y])
@@ -644,14 +640,14 @@ namespace MyGame
 						ypos = ypos - CHIP8_Y;
 					}
 
-					//collision detection:
-					if ((_pixelState [xpos, ypos] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false) || (_pixelState [xpos, ypos] == false) && (IsbitOn (_memory [_I + yDelta], xDelta) == true))
+					//collision detection
+					if ((_pixelState [xpos, ypos]) && (IsbitOn (_memory [_I + yDelta], xDelta))) 
 					{
 						_registers [0xF] = 1;
 					}
 
 					//set the pixel state
-						_pixelState [xpos, ypos] = _pixelState [xpos, ypos] ^ IsbitOn (_memory [_I + yDelta], xDelta);
+					_pixelState [xpos, ypos] = _pixelState [xpos, ypos] ^ IsbitOn (_memory [_I + yDelta], xDelta);
 				}
 			}
 			_pc += 2;
@@ -754,6 +750,11 @@ namespace MyGame
 			_I += _registers [OpcodeX];
 			_pc += 2;
 		}
+
+
+
+
+
 
 		/// <summary>
 		/// Each font digit has a sprite to draw it to screen

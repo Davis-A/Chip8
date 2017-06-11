@@ -23,7 +23,7 @@ namespace MyGame
 						SwinGame.FillRectangle (Color.White, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
 					}
 					//gridlines
-					SwinGame.DrawRectangle (Color.Blue, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
+					//SwinGame.DrawRectangle (Color.Blue, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
 
 				}
 			}
@@ -44,47 +44,20 @@ namespace MyGame
 			if (SwinGame.KeyDown (KeyCode.KeyPad5)) { key [5] = true; }
 			if (SwinGame.KeyDown (KeyCode.KeyPad6)) { key [6] = true; }
 			if (SwinGame.KeyDown (KeyCode.KeyPad7)) { key [7] = true; }
+			//if (SwinGame.KeyDown (KeyCode.AKey)) { key [7] = true; }
 			if (SwinGame.KeyDown (KeyCode.KeyPad8)) { key [8] = true; }
+			//if (SwinGame.KeyDown (KeyCode.DKey)) { key [8] = true; }
 			if (SwinGame.KeyDown (KeyCode.KeyPad9)) { key [9] = true; }
+			if (SwinGame.KeyDown (KeyCode.SpaceKey)) { key [9] = true; }
 			if (SwinGame.KeyDown (KeyCode.ZKey)) { key [10] = true; }
 			if (SwinGame.KeyDown (KeyCode.XKey)) { key [11] = true; }
 			if (SwinGame.KeyDown (KeyCode.CKey)) { key [12] = true; }
 			if (SwinGame.KeyDown (KeyCode.AKey)) { key [13] = true; }
 			if (SwinGame.KeyDown (KeyCode.SKey)) { key [14] = true; }
 			if (SwinGame.KeyDown (KeyCode.DKey)) { key [15] = true; }
-
-			for (int i = 0; i < 16; i++) {
-				if (key [i]) 
-				{
-					Console.WriteLine ("key: " + i.ToString ("X1"));
-				}
-			}
-
-			    
-
 		}
 
-		public static void RenderOtherMethod (byte[] b) 
-		{
-			int x = 0;
-			int y = 0;
-
-			for (int i = 0; i < 2048; i++) 
-			{
-				if (b [i] == 1) 
-				{
-					SwinGame.FillRectangle (Color.White, x * MULTIPLIER, y * MULTIPLIER, MULTIPLIER, MULTIPLIER);
-				}
-				x++;
-				if (x == 64) 
-				{
-					x = 0;
-					y++;
-				}
-
-			}
-		}
-
+	
 
         public static void Main()
         {
@@ -104,11 +77,10 @@ namespace MyGame
 				{
 					machine.RedrawScreen = false;
 					SwinGame.ClearScreen (Color.Black);
-					//RenderOtherMethod (machine._videoMemory);
 					RenderPixel (machine.PixelState);
 					//SwinGame.DrawFramerate(0,0);
 					//Draw onto the screen
-					SwinGame.RefreshScreen (60);
+					SwinGame.RefreshScreen (25);
 				}
             }
 
