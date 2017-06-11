@@ -94,7 +94,7 @@ namespace MyGame
 		{
 			//get opcode
 			_opcode = GetOpcode ();
-			//Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
+			Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
 			//Console.WriteLine (_opcode.ToString ("X4"));
 
 			//decode and execute OpCode
@@ -121,7 +121,7 @@ namespace MyGame
 			}
 		}
 
-		//By default an empty LoadGame() will load Pong
+
 		public void LoadGame ()
 		{
 			LoadGame ("tetris");
@@ -374,7 +374,6 @@ namespace MyGame
 		private void Op0x00E0 ()
 		{
 			_redrawScreen = true;
-			SetAllPixels (false);
 			_pc += 2;
 		}
 
@@ -637,7 +636,7 @@ namespace MyGame
 		/// Draws a sprite at coordinate (Register[X], Register[Y])
 		/// Sprite is 8xN
 		/// Bit state is determined from reading memory at the index register and XOR against itself
-		/// If a pixels state is changed (from on to off or off to on) then Register[0xF] is set to 1 (collision detection)
+		/// if a pixels state changes set register[0xF] = 1
 		/// </summary>
 		private void Op0xDXYN () 
 		{
@@ -661,23 +660,34 @@ namespace MyGame
 					xpos = (uint)(_registers [OpcodeX] + xDelta);
 					ypos = (uint)(_registers [OpcodeY] + yDelta);
 
+
 					//code to wrap
-					if (xpos >= CHIP8_X) {
+					while (xpos >= CHIP8_X) 
+					{
 						xpos = xpos - CHIP8_X;
 					}
 
-					if (ypos >= CHIP8_Y) {
+					while (ypos >= CHIP8_Y) {
 						ypos = ypos - CHIP8_Y;
 					}
 
-					//collision detection
-					if ((_pixelState [xpos, ypos]) && (IsbitOn (_memory [_I + yDelta], xDelta))) 
+
+					/*
+					 * Save current state of pixel
+					 * XOR current state against state in memory
+					 * if the new state is different from the old set carry flag
+					 */
+					bool oldstate = _pixelState [xpos, ypos];
+
+					_pixelState [xpos, ypos] ^= IsbitOn (_memory [_I + yDelta], xDelta);
+
+					//if the pixel was on and is now off.  Set carry register[0xF] = 1
+					if (oldstate && !(_pixelState [xpos, ypos]))
 					{
 						_registers [0xF] = 1;
 					}
 
-					//set the pixel state
-					_pixelState [xpos, ypos] = _pixelState [xpos, ypos] ^ IsbitOn (_memory [_I + yDelta], xDelta);
+
 				}
 			}
 			_pc += 2;
@@ -736,18 +746,17 @@ namespace MyGame
 
 			_halt = true;
 
-			for (int keynum = 0; keynum > TOTAL_KEYS; keynum++) 
+
+			for (int keynum = 0; keynum < TOTAL_KEYS; keynum++) 
 			{
 				if (_keypad [keynum]) 
 				{
 					_registers [OpcodeX] = (byte)keynum;
 					_halt = false;
-				}
-
-				if (!_halt) 
-				{
 					_pc += 2;
 				}
+
+
 
 			}
 		}
@@ -810,7 +819,7 @@ namespace MyGame
 		{
 			_memory [_I] = (byte)(_registers [OpcodeX] / 10);
 			_memory [_I + 1] = (byte)((_registers [OpcodeX] / 10) % 10);
-			_memory [_I + 2] = (byte)(_registers [OpcodeX] % 10);
+			_memory [_I + 2] = (byte)(_registers [OpcodeX]  % 10);
 			_pc += 2;
 		}
 

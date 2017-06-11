@@ -55,6 +55,8 @@ namespace MyGame
 			if (SwinGame.KeyDown (KeyCode.AKey)) { key [13] = true; }
 			if (SwinGame.KeyDown (KeyCode.SKey)) { key [14] = true; }
 			if (SwinGame.KeyDown (KeyCode.DKey)) { key [15] = true; }
+
+
 		}
 
 	
@@ -67,6 +69,9 @@ namespace MyGame
 			SwinGame.OpenGraphicsWindow ("Chip8", chip8.CHIP8_X * MULTIPLIER, chip8.CHIP8_Y * MULTIPLIER);
             while(false == SwinGame.WindowCloseRequested())
             {
+
+				if (SwinGame.KeyTyped (KeyCode.EscapeKey)) { machine.Init (); }
+
                 //Fetch the next batch of UI interaction
                 SwinGame.ProcessEvents();
 				HandleInput (machine.Keystates);
@@ -80,7 +85,7 @@ namespace MyGame
 					RenderPixel (machine.PixelState);
 					//SwinGame.DrawFramerate(0,0);
 					//Draw onto the screen
-					SwinGame.RefreshScreen (25);
+					SwinGame.RefreshScreen (60);
 				}
             }
 
