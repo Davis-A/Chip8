@@ -13,8 +13,6 @@ namespace MyGame
 		public const ushort INITIAL_PROGRAM_ADDRESS = 0x200;
 		public const int TOTAL_KEYS = 16;
 
-
-
 		/*
 		 * All ushorts should be ushorts as they only need 16 bits
 		 * C# is deciding i cant case bytes into ushorts but i can into ushorts
@@ -197,39 +195,6 @@ namespace MyGame
 			get { return _keypad; }
 		}
 
-
-
-
-
-
-		/// <summary>
-		/// Iterate through all pixels and set them
-		/// equal to  the parameter
-		/// testing use only
-		/// </summary>
-		public void SetAllPixels (bool setvalue)
-		{
-			for (int x = 0; x < chip8.CHIP8_X; x++)
-			{
-				for (int y = 0; y < chip8.CHIP8_Y; y++)
-				{
-					_pixelState [x, y] = setvalue;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Iterate through all bytes and set to FF
-		/// Testing use only
-		/// </summary>
-		public void SetAllMemoryOn () 
-		{
-			for (int i = 0; i < TOTAL_MEMORY; i++) 
-			{
-				_memory [i] = 0xFF;
-			}
-		}
-
 		/// <summary>
 		/// Method will return the value of the bit at that index
 		/// 7 is least significant bit
@@ -257,12 +222,12 @@ namespace MyGame
 		}
 
 
-		//temp method
-		public ushort Opcode
-		{
-			get { return _opcode; }
-			set { _opcode = value;}
-		}
+		//Testing method to change
+		//public ushort Opcode
+		//{
+		//	get { return _opcode; }
+		//	set { _opcode = value;}
+		//}
 
 		/// <summary>
 		/// Returns the second nibble from Opcode
@@ -331,6 +296,71 @@ namespace MyGame
 		{
 			get { return _pixelState; }
 		}
+
+		public void RunOpCode ()
+		{
+			switch (_opcode & 0xF000) {
+			case 0x0000:
+				switch (_opcode & 0x00FF) {
+				case 0x00E0: Op0x00E0 (); break;
+				case 0x00EE: Op0x00EE (); break;
+				default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+				}
+				break;
+			case 0x1000: Op0x1NNN (); break;
+			case 0x2000: Op0x2NNN (); break;
+			case 0x3000: Op0x3XNN (); break;
+			case 0x4000: Op0x4XNN (); break;
+			case 0x5000: Op0x5XY0 (); break;
+			case 0x6000: Op0x6XNN (); break;
+			case 0x7000: Op0x7XNN (); break;
+			case 0x8000:
+				switch (_opcode & 0x000F) {
+				case 0x0000: Op0x8XY0 (); break;
+				case 0x0001: Op0x8XY1 (); break;
+				case 0x0002: Op0x8XY2 (); break;
+				case 0x0003: Op0x8XY3 (); break;
+				case 0x0004: Op0x8XY4 (); break;
+				case 0x0005: Op0x8XY5 (); break;
+				case 0x0006: Op0x8XY6 (); break;
+				case 0x0007: Op0x8XY7 (); break;
+				case 0x000E: Op0x8XYE (); break;
+				default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+				}
+				break;
+			case 0x9000: Op0x9XY0 (); break;
+			case 0xA000: Op0xANNN (); break;
+			case 0xB000: Op0xBNNN (); break;
+			case 0xC000: Op0xCXNN (); break;
+			case 0xD000: Op0xDXYN (); break;
+			case 0xE000:
+				switch (_opcode & 0x00FF) {
+				case 0x009E: Op0xEX9E (); break;
+				case 0x00A1: Op0xEXA1 (); break;
+				default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+				}
+				break;
+			case 0xF000:
+				switch (_opcode & 0x00FF) {
+				case 0x0007: Op0xFX07 (); break;
+				case 0x000A: Op0xFX0A (); break;
+				case 0x0015: Op0xFX15 (); break;
+				case 0x0018: Op0xFX18 (); break;
+				case 0x001E: Op0xFX1E (); break;
+				case 0x0029: Op0xFX29 (); break;
+				case 0x0033: Op0xFX33 (); break;
+				case 0x0055: Op0xFX55 (); break;
+				case 0x0065: Op0xFX65 (); break;
+				default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+				}
+				break;
+			//default action if opcode doesn't exist
+			default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+			}
+		}
+	
+
+
 
 		/*
 		 * ****************************
@@ -811,77 +841,11 @@ namespace MyGame
 			_pc += 2;
 		}
 
-
-
-
-
-
-		//Run opcode will be moved higher up later
-		public void RunOpCode ()
-		{
-			switch (_opcode & 0xF000)
-			{
-				case 0x0000:	switch (_opcode & 0x00FF) 
-				{
-									case 0x00E0: Op0x00E0 (); break;
-									case 0x00EE: Op0x00EE (); break;
-									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
-				}break;
-				case 0x1000:	Op0x1NNN ();	break;
-				case 0x2000:	Op0x2NNN ();	break;
-				case 0x3000:	Op0x3XNN ();	break;
-				case 0x4000:	Op0x4XNN ();	break;
-				case 0x5000:	Op0x5XY0 ();	break;
-				case 0x6000:	Op0x6XNN ();	break;
-				case 0x7000: 	Op0x7XNN (); 	break;
-				case 0x8000: 	switch (_opcode & 0x000F)
-								{
-									case 0x0000:	Op0x8XY0 (); 	break;
-									case 0x0001:	Op0x8XY1 ();	break;
-									case 0x0002:	Op0x8XY2 (); 	break;
-									case 0x0003:	Op0x8XY3 (); 	break;
-									case 0x0004:	Op0x8XY4 (); 	break;
-									case 0x0005:	Op0x8XY5 ();	break;
-									case 0x0006:	Op0x8XY6 (); 	break;
-									case 0x0007:	Op0x8XY7 (); 	break;
-									case 0x000E:	Op0x8XYE (); 	break;
-									default: 		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
-								}break;
-				case 0x9000:	Op0x9XY0 ();	break;
-				case 0xA000:	Op0xANNN ();	break;
-				case 0xB000: 	Op0xBNNN (); 	break;
-				case 0xC000: 	Op0xCXNN (); 	break;
-				case 0xD000: 	Op0xDXYN (); 	break;
-				case 0xE000: 	switch (_opcode & 0x00FF) 
-								{
-									case 0x009E: 	Op0xEX9E ();	break;
-									case 0x00A1: 	Op0xEXA1 ();	break;
-									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
-								}break;
-				case 0xF000:	switch (_opcode & 0x00FF) 
-								{
-									case 0x0007: 	Op0xFX07 (); 	break;
-									case 0x000A: 	Op0xFX0A (); 	break;
-									case 0x0015: 	Op0xFX15 (); 	break;
-									case 0x0018: 	Op0xFX18 ();	break;
-									case 0x001E: 	Op0xFX1E (); 	break;
-									case 0x0029:	Op0xFX29 ();	break;
-									case 0x0033: 	Op0xFX33 ();	break;
-									case 0x0055:	Op0xFX55 (); 	break;
-									case 0x0065:	Op0xFX65 (); 	break;
-									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
-								}break;
-				//default action if opcode doesn't exist
-				default:		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
-			}
-		}
 		/*
-		 * ****************************
-		 * Opcode definitions end here
-		 * ****************************
-		 */
-
-
+			 * ****************************
+			 * Opcode definitions end here
+			 * ***************************
+			 */
 
 	}
 }
