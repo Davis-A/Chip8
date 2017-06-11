@@ -2,14 +2,12 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug-Windows|x86" />
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="C:\Users\andrew\Documents\GitHub\Chip8 - Swingame\src\chip8.cs" line="635" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MonoDevelop.Ide.Workbench ActiveDocument="src\chip8.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="src\GameMain.cs">
     <Files>
-      <File FileName="src\GameMain.cs" Line="29" Column="5" />
-      <File FileName="src\chip8.cs" Line="643" Column="1" />
+      <File FileName="src\GameMain.cs" Line="109" Column="6" />
+      <File FileName="src\chip8.cs" Line="607" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.ItemProperties.MyGameWin PreferredExecutionTarget="MonoDevelop.Default" />

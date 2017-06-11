@@ -37,7 +37,6 @@ namespace MyGame
 
 
 		private ushort [] _stack;
-		//stack pointer  //BUG unsure if the SP should be 8bit (byte) of 16 bits (ushort).
 		private byte _sp;
 
 		//Chip8 has hex keypad 0x0 to 0xF
@@ -46,9 +45,14 @@ namespace MyGame
 		//sound stuff
 		private byte _delayTimer;
 		private byte _soundTimer;
+		private bool _redrawScreen = true;
 
 
 		Random rand = new Random ();
+
+		//temp shit
+		public byte [] _videoMemory = new byte [64 * 32];
+
 
 
 
@@ -95,7 +99,9 @@ namespace MyGame
 		{
 			//get opcode
 			_opcode = GetOpcode ();
-			Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
+			//Console.WriteLine ("OpCode: {0}", _opcode.ToString ("X4"));
+			//Console.WriteLine (_opcode.ToString ("X4"));
+
 			//decode and execute OpCode
 			RunOpCode ();
 			//if system is halted, do not update timers.  See 0xFX0A
@@ -123,7 +129,7 @@ namespace MyGame
 		//By default an empty LoadGame() will load Pong
 		public void LoadGame ()
 		{
-			LoadGame ("Pong");
+			LoadGame ("tetris");
 		}
 
 		public void UpdateTimers () 
@@ -141,8 +147,7 @@ namespace MyGame
 
 		public ushort GetOpcode ()
 		{
-
-			 /*
+			/*
 			 * Each chunk of memory is 8bits (1byte) and an opcode is 16 bits (2bytes)
 			 * The first half of the opcode is stored at memory[program counter]
 			 * the seond at memory[program counter +1]
@@ -150,8 +155,6 @@ namespace MyGame
 			 * then the opcode would be 0xFFAA (decimal: 65450)
 			 * take the first byte, shift it 8 bits then or it with the second
 			 */
-
-
 			return (ushort)(_memory [_pc] << 8 | _memory [_pc + 1]);
 		}
 
@@ -185,6 +188,18 @@ namespace MyGame
 				_memory [i] = fontset [i];
 			}
 		}
+
+		public bool RedrawScreen 
+		{
+			get { return _redrawScreen; }
+			set { _redrawScreen = value; }
+		}
+
+		public bool [] Keystates 
+		{
+			get { return _keypad; }
+		}
+
 
 
 
@@ -331,6 +346,7 @@ namespace MyGame
 		/// </summary>
 		private void Op0x00E0 ()
 		{
+			_redrawScreen = true;
 			SetAllPixels (false);
 			_pc += 2;
 		}
@@ -353,13 +369,15 @@ namespace MyGame
 		private void Op0x1NNN ()
 		{
 			_pc = OpcodeNNN;
-			}
+		}
 
 		/// <summary>
 		/// Calls the subroutine at NNN
 		/// </summary>
 		private void Op0x2NNN ()
 		{
+			//BUG don't know whether to increment stack pointer before or after
+			//_sp++;
 			_stack [_sp] = _pc;
 			_sp++;
 			_pc = OpcodeNNN;
@@ -587,19 +605,17 @@ namespace MyGame
 
 
 
-		  
-
-
 
 		/// <summary>
 		/// Set Register[0xF] = 0
 		/// Draws a sprite at coordinate (Register[X], Register[Y])
 		/// Sprite is 8xN
-		/// Bit state is determined from reading memory at the index register 
-		/// If a pixel is on and it is turned off.  Register[0xF] is set to 1 (collision detection)
+		/// Bit state is determined from reading memory at the index register and XOR against itself
+		/// If a pixels state is changed (from on to off or off to on) then Register[0xF] is set to 1 (collision detection)
 		/// </summary>
 		private void Op0xDXYN () 
 		{
+			_redrawScreen = true;
 			//If this exception is hit investigate Opcode DXY0.  
 			// http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 			//It is a Super Chip 8 opcode
@@ -607,42 +623,35 @@ namespace MyGame
 			{
 				throw new Exception ("Opcode 0xDXYN hit an outlier where N = 0.  Investigate an additional opcode DXY0 where sprite is 16x16");
 			}
-			/*
-			 * As each sprite is 8 pixels horizontal, each row is one byte
-			 * Therefore xDelta can be both the horizontal offset for the pixel
-			 * and the index for which bit from the array is being considered
-			 * Given above as each byte is a horizontal row
-			 * To get the next byte in memory we can use the yDelta
-			 */
-
-			//TODO write code to handle sprites wrapping around the screen so if it goes off an edge, half of it appears of the other side
 
 			_registers [0xF] = 0;
+			uint xpos;
+			uint ypos;
 			for (int yDelta = 0; yDelta < OpcodeN; yDelta++) 
 			{
 				for (int xDelta = 0; xDelta < 8; xDelta++) 
 				{
-					
-					/*
-					if ( (_pixelState [_registers [OpcodeX] + xDelta, _registers [OpcodeY] + yDelta] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false))
+
+					xpos = (uint)(_registers [OpcodeX] + xDelta);
+					ypos = (uint)(_registers [OpcodeY] + yDelta);
+
+					//code to wrap
+					if (xpos >= CHIP8_X) {
+						xpos = xpos - CHIP8_X;
+					}
+
+					if (ypos >= CHIP8_Y) {
+						ypos = ypos - CHIP8_Y;
+					}
+
+					//collision detection:
+					if ((_pixelState [xpos, ypos] == true) && (IsbitOn (_memory [_I + yDelta], xDelta) == false) || (_pixelState [xpos, ypos] == false) && (IsbitOn (_memory [_I + yDelta], xDelta) == true))
 					{
 						_registers [0xF] = 1;
 					}
-					*/
 
-					Console.WriteLine (_registers [OpcodeX] + xDelta);
-					Console.WriteLine (_registers [OpcodeY] + yDelta);
-
-
-					//Console.WriteLine ("X coordinate: {0}\tY coordinate: {1}", _registers [OpcodeX + xDelta] + xDelta.ToString ("D2"), _registers [OpcodeY +yDelta] + yDelta.ToString ("D2"));
-
-
-					//Console.WriteLine (_registers [OpcodeX + xDelta] );
-					//Console.WriteLine (_registers [OpcodeY + yDelta] );
-
-					_pixelState[_registers[OpcodeX] + xDelta, _registers[OpcodeY] + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
-
-					_pixelState [OpcodeX + xDelta, OpcodeY + yDelta] = IsbitOn (_memory [_I + yDelta], xDelta);
+					//set the pixel state
+						_pixelState [xpos, ypos] = _pixelState [xpos, ypos] ^ IsbitOn (_memory [_I + yDelta], xDelta);
 				}
 			}
 			_pc += 2;
@@ -811,6 +820,12 @@ namespace MyGame
 		{
 			switch (_opcode & 0xF000)
 			{
+				case 0x0000:	switch (_opcode & 0x00FF) 
+				{
+									case 0x00E0: Op0x00E0 (); break;
+									case 0x00EE: Op0x00EE (); break;
+									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
+				}break;
 				case 0x1000:	Op0x1NNN ();	break;
 				case 0x2000:	Op0x2NNN ();	break;
 				case 0x3000:	Op0x3XNN ();	break;
@@ -847,22 +862,14 @@ namespace MyGame
 									case 0x0007: 	Op0xFX07 (); 	break;
 									case 0x000A: 	Op0xFX0A (); 	break;
 									case 0x0015: 	Op0xFX15 (); 	break;
-									case 0x0013: 	Op0xFX18 ();	break;
+									case 0x0018: 	Op0xFX18 ();	break;
 									case 0x001E: 	Op0xFX1E (); 	break;
 									case 0x0029:	Op0xFX29 ();	break;
 									case 0x0033: 	Op0xFX33 ();	break;
 									case 0x0055:	Op0xFX55 (); 	break;
 									case 0x0065:	Op0xFX65 (); 	break;
+									default: Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4")); break;
 								}break;
-
-
-				case 0x0000:	switch (_opcode & 0x00FF)
-								{
-									case 0x00E0: 	Op0x00E0 ();	break;
-									case 0x00EE:	Op0x00EE ();	break;
-									default:		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
-								}break;
-
 				//default action if opcode doesn't exist
 				default:		Console.WriteLine ("I don't know an OpCode {0}", _opcode.ToString ("X4"));	break;
 			}
