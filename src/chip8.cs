@@ -222,7 +222,7 @@ namespace MyGame
 		}
 
 
-		//Testing method to change
+		////Testing method to change
 		//public ushort Opcode
 		//{
 		//	get { return _opcode; }
